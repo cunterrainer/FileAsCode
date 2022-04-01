@@ -1,16 +1,3 @@
---workspace "Util"
---    platforms { "x64", "x86" }
---    configurations {
---        "Debug",
---        "Release"
---    }
---    startproject "Utilities"
---
---outputdir = "/BIN/%{cfg.buildcfg}/%{cfg.architecture}/"
----- get current working directory
---cwd = os.getcwd()
---objdir(cwd .. outputdir .. "%{prj.name}/bin-int")
-
 project "utility"
     kind "StaticLib"
     language "C++"
