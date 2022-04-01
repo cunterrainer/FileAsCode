@@ -116,7 +116,7 @@ bool WriteUncompressedImageToFile(const Image& image, const std::string& constDe
         }
     }
     outfile << "\n};\n";
-    outfile << constDecl << " int " << dataName << "RelativeSize = sizeof(" << dataName << "Size) / sizeof(unsigned char);";
+    outfile << constDecl << " int " << dataName << "RelativeSize = sizeof(" << dataName << ") / sizeof(unsigned char);";
     outfile.close();
     return true;
 }
@@ -169,7 +169,7 @@ bool WriteRawImageToFile(const Image& image, const std::string& constDecl) {
         }
     }
     output << "\n};\n";
-    output << constDecl << " int " << dataName << "RelativeSize = sizeof(" << dataName << "Size) / sizeof(unsigned char);";
+    output << constDecl << " int " << dataName << "RelativeSize = sizeof(" << dataName << ") / sizeof(unsigned char);";
     output.close();
     return true;
 }
