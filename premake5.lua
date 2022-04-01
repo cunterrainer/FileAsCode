@@ -13,7 +13,7 @@ targetdir(cwd .. outputdir .. "%{prj.name}/bin")
 objdir(cwd .. outputdir .. "%{prj.name}/bin-int")
 
 include "utility"
-project "Image2CArray"
+project "im2c"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
