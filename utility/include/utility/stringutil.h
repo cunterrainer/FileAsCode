@@ -17,6 +17,16 @@ namespace util::string {
     std::string CapitalizeCopy(std::string str);
 
 
+    static inline void RemoveChars(std::string& str, const std::string& chars) {
+        for (const auto& c : chars) {
+            str.erase(std::remove(str.begin(), str.end(), c), str.end());
+        }
+    }
+    static inline std::string RemoveCharsCopy(std::string str, const std::string& chars) {
+        RemoveChars(str, chars);
+        return str;
+    }
+
     static inline void RemoveChar(std::string& str, const char c) {
         str.erase(std::remove(str.begin(), str.end(), c), str.end());
     }
