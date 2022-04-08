@@ -3,7 +3,6 @@
 #include <vector>
 #include <ostream>
 #include <cstdint>
-#include <functional>
 #include <algorithm>
 #include <iterator>
 
@@ -21,6 +20,15 @@
 #define IHI_CXP_INL		IH_CXP_OR_INL	// constexpr if available (C++ 20) or inline [iterator]
 #define IH_CXP_INL		IH_CXP_OR_INL	// constexpr if constexpr is available inline else (C++ 20)
 
+
+// ifdef for C++20
+#include <span>
+#ifdef __cpp_lib_span
+	#define IH_SPAN std::span<std::string>
+#else
+	#define IH_SPAN std::vector<std::string>
+#endif
+
 namespace util::io {
 	class InputHandler_const_iterator
 	{
@@ -29,16 +37,16 @@ namespace util::io {
 		const std::vector<std::string>& m_Vec;
 		int m_Idx;
 
-		using MySelf     = InputHandler_const_iterator;
-		using MySelfRef  = InputHandler_const_iterator&;
+		using MySelf = InputHandler_const_iterator;
+		using MySelfRef = InputHandler_const_iterator&;
 		using MySelfCRef = const InputHandler_const_iterator&;
 	public:
 		using iterator_category = std::random_access_iterator_tag;
 
-		using value_type      = std::string;
+		using value_type = std::string;
 		using difference_type = ptrdiff_t;
-		using reference       = const std::string&;
-		using pointer         = const std::string*;
+		using reference = const std::string&;
+		using pointer = const std::string*;
 	public:
 		IHI_CXP_AND_INL InputHandler_const_iterator() : m_Vec(m_EmptyVectorBuffer), m_Idx(0) {};
 		IHI_CXP_AND_INL explicit InputHandler_const_iterator(const std::vector<std::string>& vec, int size) noexcept : m_Vec(vec), m_Idx(size) {}
@@ -118,12 +126,14 @@ namespace util::io {
 		using const_iterator = InputHandler_const_iterator;
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+		using IsInFunc = bool (*)(const std::string&);
 	private:
 		const int m_Size;
 		mutable IHM m_SearchMode; // just inorder to use SetSearchMode() for const instances
-		std::vector<std::string> m_Inputs;
-		std::vector<std::string> m_InputsLower;
-		std::vector<std::string> m_InputsUpper;
+		mutable std::vector<std::string> m_Inputs;	// just inorder to use GetArguments() for const instances
+		mutable std::vector<std::string> m_InputsLower;
+		mutable std::vector<std::string> m_InputsUpper;
 	private:
 		IH_CXP_AND_INL const void SetMode(IHM* mode) const noexcept { *mode = m_SearchMode == IHM::Lower || m_SearchMode == IHM::Upper ? m_SearchMode : *mode; }
 
@@ -252,7 +262,7 @@ namespace util::io {
 			return false;
 		}
 
-		IH_NODISCARD IH_CXP_INL const bool IsInIndex(const std::function<const bool(const std::string&)>& func, const unsigned int index, IHM mode) const noexcept
+		IH_NODISCARD IH_CXP_INL const bool IsInIndex(const IsInFunc& func, const unsigned int index, IHM mode) const noexcept
 		{
 			IH_UNLIKELY if (index >= static_cast<unsigned int>(Size()))
 				return false;
@@ -264,7 +274,7 @@ namespace util::io {
 			return func(str);
 		}
 
-		IH_NODISCARD IH_CXP_INL const bool IsInString(const std::function<const bool(const std::string&)>& func, const std::string& str, IHM mode) const noexcept
+		IH_NODISCARD IH_CXP_INL const bool IsInString(const IsInFunc& func, const std::string& str, IHM mode) const noexcept
 		{
 			SetMode(&mode);
 			IH_UNLIKELY if (str == "")
@@ -340,7 +350,7 @@ namespace util::io {
 		IH_NODISCARD IH_CXP_INL const std::vector<std::string> LowerCopy(std::vector<std::string> vec) const noexcept { Lower(vec); return vec; }
 		IH_NODISCARD IH_CXP_INL const std::vector<std::string> UpperCopy(std::vector<std::string> vec) const noexcept { Upper(vec); return vec; }
 
-		IH_NODISCARD IH_CXP_AND_INL const std::vector<std::string>& GetArguments(IHM mode) const noexcept {
+		IH_NODISCARD IH_CXP_AND_INL const IH_SPAN& GetArguments(IHM mode) const noexcept {
 			SetMode(&mode);
 			switch (mode) {
 			case IHM::Lower:
@@ -420,14 +430,14 @@ namespace util::io {
 		template <typename T> IH_NODISCARD IH_CXP_AND_INL const bool IsInContainer (const T& cont, const std::string& str) const noexcept { return IsInContainerString(cont, str, IHM::Normal); }
 		template <typename T> IH_NODISCARD IH_CXP_AND_INL const bool IsInContainerL(const T& cont, const std::string& str) const noexcept { return IsInContainerString(cont, str, IHM::Lower);  }
 		template <typename T> IH_NODISCARD IH_CXP_AND_INL const bool IsInContainerU(const T& cont, const std::string& str) const noexcept { return IsInContainerString(cont, str, IHM::Upper);  }
-
-		IH_NODISCARD IH_CXP_INL const bool IsIn (const std::function<const bool(const std::string&)>& func, const std::string& str) const noexcept { return IsInString(func, str, IHM::Normal); }
-		IH_NODISCARD IH_CXP_INL const bool IsInL(const std::function<const bool(const std::string&)>& func, const std::string& str) const noexcept { return IsInString(func, str, IHM::Lower);  }
-		IH_NODISCARD IH_CXP_INL const bool IsInU(const std::function<const bool(const std::string&)>& func, const std::string& str) const noexcept { return IsInString(func, str, IHM::Upper);  }
 		
-		IH_NODISCARD IH_CXP_INL const bool IsIn (const std::function<const bool(const std::string&)>& func, const unsigned int index) const noexcept { return IsInIndex(func, index, IHM::Normal); }
-		IH_NODISCARD IH_CXP_INL const bool IsInL(const std::function<const bool(const std::string&)>& func, const unsigned int index) const noexcept { return IsInIndex(func, index, IHM::Lower);  }
-		IH_NODISCARD IH_CXP_INL const bool IsInU(const std::function<const bool(const std::string&)>& func, const unsigned int index) const noexcept { return IsInIndex(func, index, IHM::Upper);  }
+		IH_NODISCARD IH_CXP_INL const bool IsIn (const IsInFunc& func, const std::string& str) const noexcept { return IsInString(func, str, IHM::Normal); }
+		IH_NODISCARD IH_CXP_INL const bool IsInL(const IsInFunc& func, const std::string& str) const noexcept { return IsInString(func, str, IHM::Lower);  }
+		IH_NODISCARD IH_CXP_INL const bool IsInU(const IsInFunc& func, const std::string& str) const noexcept { return IsInString(func, str, IHM::Upper);  }
+		
+		IH_NODISCARD IH_CXP_INL const bool IsIn (const IsInFunc& func, const unsigned int index) const noexcept { return IsInIndex(func, index, IHM::Normal); }
+		IH_NODISCARD IH_CXP_INL const bool IsInL(const IsInFunc& func, const unsigned int index) const noexcept { return IsInIndex(func, index, IHM::Lower);  }
+		IH_NODISCARD IH_CXP_INL const bool IsInU(const IsInFunc& func, const unsigned int index) const noexcept { return IsInIndex(func, index, IHM::Upper);  }
 
 		IH_NODISCARD IHI_CXP_INL iterator begin() noexcept { return iterator(m_Inputs, 0); }
 		IH_NODISCARD IHI_CXP_INL iterator end()   noexcept { return iterator(m_Inputs, m_Size); }
@@ -448,13 +458,12 @@ namespace util::io {
 		IH_NODISCARD IHI_CXP_INL const_reverse_iterator crend()   const noexcept { return rend(); }
 	};
 
-
-	IH_NODISCARD static inline std::ostream& operator<<(std::ostream& os, const util::io::InputHandler& ih) {
+	IH_NODISCARD static inline std::ostream& operator<<(std::ostream& os, const InputHandler& ih) {
 		os << "InputHandler:<" << ih.Size() << "> [";
 		for (int i = 0; i < ih.Size(); ++i)
 		{
 			os << ih[i];
-			IH_LIKELY if (i != ih.Size() - 1)
+			IH_LIKELY if(i != ih.Size() - 1)
 				os << ", ";
 		}
 		os << "]";
