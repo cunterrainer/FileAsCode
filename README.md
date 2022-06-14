@@ -13,4 +13,4 @@ have two options to choose from, `-r`/`-raw` and `-uncompressed`/`-uc`, the raw 
  - PIC (Softimage PIC)
  - PNM (PPM and PGM binary only)
 
-However there is one downside to using a "non compatible" type, the program does also write the width, height and channels of the image into the header file, those numbers will be wrong, but the array is still valid aswell as the provided `relative_size` variable.
+However there is one downside to using a "non compatible" type, the program does also write the width, height and channels of the image into the header file, those numbers will be wrong, but the array and the provided `relative_size` variable are still valid.
