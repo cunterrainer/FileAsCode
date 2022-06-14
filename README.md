@@ -20,6 +20,8 @@ If you're on windows you can simply use the provided binary that can be found in
 Build it yourself:
 ```
 git clone https://github.com/pyvyx/Image2CArray.git
+```
+```
 cd Image2CArray
 ```
 Visual studio (works aswell for vs2019)  
