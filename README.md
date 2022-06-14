@@ -1,7 +1,7 @@
 # Image2CArray
 
 ## A program to convert an image into a C/C++ style array
-In fact not only images can be converted. It can also be used for fonts or any other file format you'd like to have an array of. However when converting a file you
+In fact not only images can be converted. It can also be used for fonts or any other file format you'd like to have an array of. But when converting a file you
 have two options to choose from, `-r`/`-raw` and `-uncompressed`/`-uc`, the raw option can be used for any arbitrary file type, the uncompressed is only going to work with following types:
  - JPEG baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib)
  - PNG 1/2/4/8/16-bit-per-channel
