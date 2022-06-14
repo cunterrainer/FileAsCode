@@ -43,4 +43,5 @@ Configurations:
  - debug_x64 (default, the same as just using `make`)
  - release_x86
  - release_x64
+
 The `-j` flag uses multithreaded compilation and is also optional since the project is quiet small it's pretty fast compiled.
