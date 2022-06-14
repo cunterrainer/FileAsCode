@@ -13,4 +13,34 @@ have two options to choose from, `-r`/`-raw` and `-uncompressed`/`-uc`, the raw 
  - PIC (Softimage PIC)
  - PNM (PPM and PGM binary only)
 
-However there is one downside to using a "non compatible" type, the program does also write the width, height and channels of the image into the header file, those numbers will be wrong, but the array and the provided `relative_size` variable are still valid.
+However there is one downside to using a "non compatible" type, the program does also write the width, height and channels of the image into the header file, those numbers will be wrong, but the array and the provided `relative_size` variable are still valid. For more informations use the `-h` flag.
+
+# Build
+If you're on windows you can simply use the provided binary that can be found in the release section.  
+Build it yourself:
+```
+git clone https://github.com/pyvyx/Image2CArray.git
+cd Image2CArray
+```
+Visual studio (works aswell for vs2019)  
+```
+vendor/premake5 vs2022
+```
+gcc  
+```
+vendor/premake5 gmake --cc=gcc
+```
+clang
+```
+vendor/premake5 gmake --cc=clang
+```
+gcc/clang
+```
+make <-j> config=<configuration>
+```
+Configurations:
+ - debug_x86
+ - debug_x64 (default, the same as just using `make`)
+ - release_x86
+ - release_x64
+The `-j` flag uses multithreaded compilation and is also optional since the project is quiet small it's pretty fast compiled.
