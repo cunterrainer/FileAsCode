@@ -1,4 +1,4 @@
-import os, sys, shutil, time
+import os, sys, shutil, time, filecmp
 from termcolor import colored
 
 def GetFilesInDir(path:str) -> list:
@@ -78,7 +78,6 @@ def CreateHeaderFiles(checkLevel:int):
     path:str = "test/images"
     headerPath:str = "test/headers"
     files:list = GetFilesInDir(path)
-    files.remove(".gitignore")
     headerNames:list = GetFileNames(files)
     headerNamesOld:list = GetFileNames(files)
     for i in range(len(files)):
@@ -98,19 +97,24 @@ def CreateHeaderFiles(checkLevel:int):
     return filePaths, filePathsOld
 
 def CheckHeader(filePaths:list, filePathsOld:list):
-    counter:int = 0
-    for i in range(len(filePaths)):
+    filePathsAmount = len(filePaths)
+    filecmp.clear_cache()
+    for i in range(filePathsAmount):
         if not os.path.exists(filePaths[i]):
-            print(colored("Error: " + filePaths[i] + " does not exist", "red"))
-            return False, counter, len(filePaths)
+            print(colored("\nError: " + filePaths[i] + " does not exist", "red"))
+            return
         if not os.path.exists(filePathsOld[i]):
-            print(colored("Error: " + filePathsOld[i] + " does not exist", "red"))
-            return False, counter, len(filePaths)
-        if os.path.getsize(filePaths[i]) != os.path.getsize(filePathsOld[i]):
-            print(colored("Error: " + filePaths[i] + " and " + filePathsOld[i] + " are different", "red"))
-            return False, counter, len(filePaths)
-        counter += 1
-    return True, counter, len(filePaths)
+            print(colored("\nError: " + filePathsOld[i] + " does not exist", "red"))
+            return
+        if not filecmp.cmp(filePaths[i], filePathsOld[i], shallow=False):
+            print(colored("\nError: " + filePaths[i] + " and " + filePathsOld[i] + " are different", "red"))
+            return
+        if i == filePathsAmount - 1:
+            print(colored("Passed " + str(i+1) + " | " + str(filePathsAmount) + " tests", "green"))
+            print(colored("All files are the same", "green"))
+        else:
+            print(colored("Passed " + str(i+1) + " | " + str(filePathsAmount) + " tests", "green"), end="\r")
+    return
 
 def main():
     startTime = time.time()
@@ -137,11 +141,8 @@ def main():
     CreateFolder("test/headers")
     print("Check level: " + str(checkLevel) + " | 8")
     filePaths, filePathsOld = CreateHeaderFiles(checkLevel)
-    success, passed, testsAmount = CheckHeader(filePaths, filePathsOld)
-    if success:
-        print(colored("Passed " + str(passed) + " from " + str(testsAmount) + " tests", "green"))
-    else:
-        print(colored("Passed " + str(passed) + " from " + str(testsAmount) + " tests", "red"))
+    CheckHeader(filePaths, filePathsOld)
+
     print("Time: " + str(time.time() - startTime) + " sec")
 
 if __name__ == '__main__':
