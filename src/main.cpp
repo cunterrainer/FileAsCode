@@ -1,19 +1,21 @@
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <string>
+#include <cstdint>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 #include "utility/datatypes.h"
 #include "utility/iocautil.h"
-#include "utility/filesystemutil.h"
-#include "utility/stringutil.h"
 
 class Image
 {
 private:
-    dt::int32 m_Width, m_Height, m_Channels;
+    int m_Width;
+    int m_Height;
+    int m_Channels;
     unsigned char* m_Data;
     const std::string& m_FilePath;
     const std::string& m_OutputPath;
@@ -22,23 +24,40 @@ public:
         { m_Data = stbi_load(filepath.c_str(), &m_Width, &m_Height, &m_Channels, 0); }
     ~Image() noexcept { stbi_image_free(m_Data); }
 
-    dt::int32 GetWidth() const noexcept { return m_Width; }
-    dt::int32 GetHeight() const noexcept { return m_Height; }
-    dt::int32 GetChannels() const noexcept { return m_Channels; }
+    int GetWidth() const noexcept { return m_Width; }
+    int GetHeight() const noexcept { return m_Height; }
+    int GetChannels() const noexcept { return m_Channels; }
     unsigned char* GetData() const noexcept { return m_Data; }
     const std::string& GetFilePath() const noexcept { return m_FilePath; }
     const std::string& GetOutputPath() const noexcept { return m_OutputPath; }
 };
 
 
+namespace util
+{
+    static inline std::string RemoveChars(std::string str, const std::string& chars) {
+        for (const auto& c : chars) {
+            str.erase(std::remove(str.begin(), str.end(), c), str.end());
+        }
+        return str;
+    }
+
+    static inline std::string Capitalize(std::string str)
+    {
+        str[0] = static_cast<char>(toupper(str[0]));
+        return str;
+    }
+}
+
+
 namespace Messenger
 {
-    enum class ExampleType : dt::uint8 {
+    enum class ExampleType {
         Raw = 0b0001,
         Uncomp = 0b0010
     };
 
-    static inline void WriteImageData(std::ostream& os, const char* constDecl, const std::size_t dataSize, const std::string& dataName, const Image& image) noexcept {
+    static inline void WriteImageData(std::ostream& os, const char* constDecl, const std::uint64_t dataSize, const std::string& dataName, const Image& image) noexcept {
         os << constDecl << " int sg_Width = " << image.GetWidth() << ";\n";
         os << constDecl << " int sg_Height = " << image.GetHeight() << ";\n";
         os << constDecl << " int sg_Channels = " << image.GetChannels() << ";\n";
@@ -48,9 +67,9 @@ namespace Messenger
         os << constDecl << " unsigned char " << dataName << "[" << dataSize << "] =\n{\n\t";
     }
 
-    static constexpr inline void WriteExample(std::ostream& os, ExampleType mode, bool indent) noexcept {
+    static constexpr void WriteExample(std::ostream& os, ExampleType mode, bool indent) noexcept {
         char indentChar = indent ? '\t' : ' ';
-        if(static_cast<dt::uint8>(mode) & static_cast<dt::uint8>(ExampleType::Raw)) {
+        if (static_cast<std::uint8_t>(mode) & static_cast<std::uint8_t>(ExampleType::Raw)) {
             os << indentChar << "Example of writing an png file:\n";
             os << indentChar << "Example with raw data (-r) (using stb_image):\n";
             os << indentChar << "\tint width, height, channels;\n";
@@ -58,7 +77,7 @@ namespace Messenger
             os << indentChar << "\tstbi_write_png(\"test.png\", sg_Width, sg_Height, sg_Channels, data, sg_Width * sg_Channels\n";
             os << indentChar << "\tstbi_image_free(data);\n\n";
         }
-        if(static_cast<dt::uint8>(mode) & static_cast<dt::uint8>(ExampleType::Uncomp))
+        if(static_cast<std::uint8_t>(mode) & static_cast<std::uint8_t>(ExampleType::Uncomp))
         {
             os << indentChar << "Example with uncompressed (-uc) data (using stb_image):\n";
             os << indentChar << "\tstbi_write_png(\"test.png\", sg_Width, sg_Height, sg_Channels, sg_ImageData, sg_Width * sg_Channels);\n\n";
@@ -132,17 +151,17 @@ namespace Write {
     static constexpr inline const char* const sg_CharsToRemove = ".,/\\| +#<>%&!?§$;:-~'";
     static constexpr inline const char* const sg_DataNameSuffix = "Data";
 
-    std::pair<std::string, dt::uint64> WriteHeaderAndData(std::ofstream& os, const Image& image, const std::string& prefix, const bool rawVersion, const char* constDecl) noexcept
+    static std::pair<std::string, std::uint64_t> WriteHeaderAndData(std::ofstream& os, const Image& image, const std::string& prefix, const bool rawVersion, const char* constDecl) noexcept
     {
-        const std::string dataName = prefix + util::string::CapitalizeCopy(util::string::RemoveCharsCopy(util::fs::GetFileName(image.GetFilePath()), sg_CharsToRemove)) + sg_DataNameSuffix;
+        const std::string dataName = prefix + util::Capitalize(util::RemoveChars(std::filesystem::path(image.GetFilePath()).replace_extension().filename().string(), sg_CharsToRemove)) + sg_DataNameSuffix;
         Messenger::WriteHeaderComment(os, rawVersion, image.GetFilePath(), dataName);
 
-        const dt::uint64 dataSize = image.GetWidth() * image.GetHeight() * image.GetChannels();
+        const std::uint64_t dataSize = static_cast<std::uint64_t>(image.GetWidth() * image.GetHeight() * image.GetChannels());
         Messenger::WriteImageData(os, constDecl, dataSize, dataName, image);
         return std::make_pair(dataName, dataSize);
     }
 
-    static inline void WriteRelativeSizeAndClose(std::ofstream& outfile, const char* constDecl, const std::pair<std::string, dt::uint64>& data) noexcept
+    static inline void WriteRelativeSizeAndClose(std::ofstream& outfile, const char* constDecl, const std::pair<std::string, std::uint64_t>& data) noexcept
     {
         outfile << "\n};\n";
         outfile << std::dec << constDecl << " int " << data.first << "RelativeSize = sizeof(" << data.first << ") / sizeof(unsigned char); // " << data.second;
@@ -164,10 +183,10 @@ namespace Write {
         if(!Check::OfstreamIsOpen(outfile, image.GetOutputPath().c_str())) {
             return false;
         }
-        std::pair<std::string, dt::uint64> data = WriteHeaderAndData(outfile, image, "sg_", false, constDecl);
+        std::pair<std::string, std::uint64_t> data = WriteHeaderAndData(outfile, image, "sg_", false, constDecl);
 
         outfile << std::hex << std::uppercase;
-        for (dt::uint64 i = 0; i < data.second; ++i) 
+        for (std::uint64_t i = 0; i < data.second; ++i) 
         {
             WriteNumber(outfile, image.GetData()[i]);
 
@@ -192,7 +211,7 @@ namespace Write {
         if(!Check::OfstreamIsOpen(outfile, image.GetOutputPath().c_str()))
             return false;
 
-        std::pair<std::string, dt::uint64> data = WriteHeaderAndData(outfile, image, "sg_Raw", true, constDecl);
+        std::pair<std::string, std::uint64_t> data = WriteHeaderAndData(outfile, image, "sg_Raw", true, constDecl);
 
         // counts up to 16 inorder to have a formated output
         dt::int8 counter = 0;
@@ -276,7 +295,7 @@ namespace CLA {
             "-c", "-cpp", "-c++", "-i", "-o", "-r", "-uc", "-uncompressed", 
             "-il", "-inline", "-l", "-help", "-e", "-ex", "-raw", "-h"  };
 
-        int location;
+        unsigned int location;
         if((location = ih.GetL("-i"))) {
             input.inputFile = ih.GetL(location + 1);
         }
@@ -310,6 +329,16 @@ namespace CLA {
 }
 
 
+static inline const char* GetConstDeclaration(const CLA::Input& input) noexcept
+{
+    if (input.arrayType == CLA::ArrayType::CArray)
+        return "static const";
+    if (input.inlineVars)
+        return "static inline constexpr";
+    return "static constexpr";
+}
+
+
 int main(int argc, const char** argv) {
     util::io::InputHandler ih(argc, argv);
     const CLA::Input& input = CLA::HandleInput(ih);
@@ -320,7 +349,7 @@ int main(int argc, const char** argv) {
     if(input.error == CLA::ErrorType::Example) {
         return 0;
     }
-    const char* constDecl = input.arrayType == CLA::ArrayType::CArray ? "static const" : input.inlineVars == true ? "static inline constexpr" : "static constexpr";
+    const char* constDecl = GetConstDeclaration(input);
 
     const Image image(input.inputFile, input.outputFile);
     return input.writeType == CLA::CompressType::Raw ? !Write::RawImageToFile(image, constDecl) : !Write::UncompressedImageToFile(image, constDecl);

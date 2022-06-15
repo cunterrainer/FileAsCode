@@ -1,9 +1,12 @@
 BIN/
 .vs/
 .git/
+headers/
 
 Makefile
 makefile
+im2c.exe
+*.make
 *.png
 *.user
 *.sln
