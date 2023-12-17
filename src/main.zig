@@ -168,7 +168,6 @@ pub fn main() !void
 
     if (!settings.valid)
     {
-        std.debug.print("sak", .{});
         return;
     }
 
