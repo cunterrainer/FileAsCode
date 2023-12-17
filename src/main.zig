@@ -188,9 +188,6 @@ pub fn main() !void
         print_err("Failed to open file '{s}': {}\n", .{settings.input_file, err});
         return;
     }
-
-    //var in_file = std.fs.cwd().openFile(settings.input_file, .{});
-
     defer in_file.close();
 
     const result = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
