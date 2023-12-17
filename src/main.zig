@@ -91,7 +91,7 @@ pub fn parse_args(args: [][] u8) Settings
     if (args.len == 1)
     {
         settings.valid = false;
-        print_err("Usage: {s} [options]\nTry '--help' for additional information\n", .{args[0]}) catch return settings;
+        print_err("Usage: {s} [options]\nTry '--help' for additional information\n", .{args[0]});
         return settings;
     }
 
@@ -114,7 +114,7 @@ pub fn parse_args(args: [][] u8) Settings
             else
             {
                 settings.valid = false;
-                print_err("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
+                print_err("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg});
                 return settings;
             }
         }
@@ -128,7 +128,7 @@ pub fn parse_args(args: [][] u8) Settings
             else
             {
                 settings.valid = false;
-                print_err("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
+                print_err("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg});
                 return settings;
             }
         }
@@ -156,7 +156,7 @@ pub fn parse_args(args: [][] u8) Settings
         else
         {
             settings.valid = false;
-            print_err("Unknown option '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
+            print_err("Unknown option '{s}'\nTry '--help' for additional information\n", .{arg});
             return settings;
         }
     }
