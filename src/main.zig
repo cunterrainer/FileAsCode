@@ -178,19 +178,10 @@ pub fn main() !void
     defer allocator.free(result);
     _ = try in_file.readAll(result);
 
-    var out_writer: std.fs.File = undefined;
-    if (settings.output_file.len == 0)
-    {
-        out_writer = std.io.getStdOut();
-    }
-    else
-    {
-        out_writer = try std.fs.cwd().createFile(settings.output_file, .{});
-        defer out_writer.close();
-    }
-
+    var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
     try write_file_header(buf.writer());
     try write_bytes_format(buf.writer(), result);
     try buf.flush();
+    out_writer.close();
 }
