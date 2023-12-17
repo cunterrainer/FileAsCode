@@ -54,7 +54,6 @@ const Settings = struct {
     output_file: [] const u8 = undefined,
     valid: bool = true,
     c_style: bool = true,
-    help: bool = false,
     inline_vars: bool = false,
     uncompressed_data: bool = false
 };
@@ -81,9 +80,14 @@ pub fn print_help(path: [] const u8) void
 
 pub fn parse_args(args: [][] u8) Settings
 {
-    var settings: Settings = .{
-        .valid = args.len > 1
-    };
+    var settings: Settings = .{};
+
+    if (args.len == 1)
+    {
+        settings.valid = false;
+        std.io.getStdErr().writer().print("Usage: {s} [options]\nTry '--help' for additional information\n", .{args[0]}) catch return settings;
+        return settings;
+    }
 
     var skip: bool = true;
     for (0.., args) |i, arg|
@@ -103,6 +107,7 @@ pub fn parse_args(args: [][] u8) Settings
             }
             else
             {
+                settings.valid = false;
                 std.io.getStdErr().writer().print("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
                 return settings;
             }
@@ -112,10 +117,11 @@ pub fn parse_args(args: [][] u8) Settings
             if (i + 1 != args.len)
             {
                 skip = true;
-            settings.output_file = args[i+1];
+                settings.output_file = args[i+1];
             }
             else
             {
+                settings.valid = false;
                 std.io.getStdErr().writer().print("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
                 return settings;
             }
@@ -131,7 +137,6 @@ pub fn parse_args(args: [][] u8) Settings
         else if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help"))
         {
             print_help(args[0]);
-            settings.help = true;
             return settings;
         }
         else if (std.mem.eql(u8, arg, "-u") or std.mem.eql(u8, arg, "--uncompressed"))
@@ -144,7 +149,7 @@ pub fn parse_args(args: [][] u8) Settings
         }
         else
         {
-            settings.help = true;
+            settings.valid = false;
             std.io.getStdErr().writer().print("Unknown option '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
             return settings;
         }
@@ -161,28 +166,32 @@ pub fn main() !void
     defer std.process.argsFree(allocator, args);
     const settings = parse_args(args);
 
-    if (settings.help)
+    if (!settings.valid)
     {
-        return;
-    }
-    else if (!settings.valid)
-    {
-        std.io.getStdErr().writer().print("Usage: {s} [options]\nTry '--help' for additional information\n", .{args[0]}) catch return;
+        std.debug.print("sak", .{});
         return;
     }
 
-    //var file = try std.fs.cwd().openFile(args[0], .{});
-    //defer file.close();
-//
-    //const result = try file.readToEndAlloc(allocator, (try file.stat()).size);
-    //defer allocator.free(result);
-    //_ = try file.readAll(result);
-//
-    //var write = try std.fs.cwd().createFile("result.txt", .{});
-    //defer write.close();
-//
-    //var buf = std.io.bufferedWriter(write.writer());
-    //try write_file_header(buf.writer());
-    //try write_bytes_format(buf.writer(), result);
-    //try buf.flush();
+    var in_file = try std.fs.cwd().openFile(settings.input_file, .{});
+    defer in_file.close();
+
+    const result = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
+    defer allocator.free(result);
+    _ = try in_file.readAll(result);
+
+    var out_writer: std.fs.File = undefined;
+    if (settings.output_file.len == 0)
+    {
+        out_writer = std.io.getStdOut();
+    }
+    else
+    {
+        out_writer = try std.fs.cwd().createFile(settings.output_file, .{});
+        defer out_writer.close();
+    }
+
+    var buf = std.io.bufferedWriter(out_writer.writer());
+    try write_file_header(buf.writer());
+    try write_bytes_format(buf.writer(), result);
+    try buf.flush();
 }
