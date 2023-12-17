@@ -59,6 +59,12 @@ const Settings = struct {
 };
 
 
+pub fn print_err(comptime format: []const u8, args: anytype) void
+{
+    std.io.getStdErr().writer().print(format, args) catch return;
+}
+
+
 pub fn print(comptime format: []const u8, args: anytype) void
 {
     std.io.getStdOut().writer().print(format, args) catch return;
@@ -85,7 +91,7 @@ pub fn parse_args(args: [][] u8) Settings
     if (args.len == 1)
     {
         settings.valid = false;
-        std.io.getStdErr().writer().print("Usage: {s} [options]\nTry '--help' for additional information\n", .{args[0]}) catch return settings;
+        print_err("Usage: {s} [options]\nTry '--help' for additional information\n", .{args[0]}) catch return settings;
         return settings;
     }
 
@@ -108,7 +114,7 @@ pub fn parse_args(args: [][] u8) Settings
             else
             {
                 settings.valid = false;
-                std.io.getStdErr().writer().print("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
+                print_err("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
                 return settings;
             }
         }
@@ -122,7 +128,7 @@ pub fn parse_args(args: [][] u8) Settings
             else
             {
                 settings.valid = false;
-                std.io.getStdErr().writer().print("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
+                print_err("Missing file path after '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
                 return settings;
             }
         }
@@ -150,7 +156,7 @@ pub fn parse_args(args: [][] u8) Settings
         else
         {
             settings.valid = false;
-            std.io.getStdErr().writer().print("Unknown option '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
+            print_err("Unknown option '{s}'\nTry '--help' for additional information\n", .{arg}) catch return settings;
             return settings;
         }
     }
@@ -179,7 +185,7 @@ pub fn main() !void
     }
     else |err|
     {
-        try std.io.getStdErr().writer().print("Failed to open file '{s}': {}\n", .{settings.input_file, err});
+        print_err("Failed to open file '{s}': {}\n", .{settings.input_file, err});
         return;
     }
 
