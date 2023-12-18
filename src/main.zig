@@ -78,8 +78,8 @@ pub fn print_help(path: [] const u8) void
     print("Usage: {s} [options]\nOptions:\n", .{path});
     print("        -i   | --input  [FILE]   Input file path\n", .{});
     print("        -o   | --output [FILE]   Output file path\n", .{});
-    print("        -c   | --c-style         Create a C-Style array\n", .{});
-    print("        -c++ | --cplusplus       Create a C++-Style array\n", .{});
+    print("        -c   | --c-style         Use C-Style variable qualifiers (const)\n", .{});
+    print("        -c++ | --cplusplus       Use C-Style variable qualifiers (constexpr)\n", .{});
     print("        -h   | --help            Show this info message\n", .{});
     print("        -u   | --uncompressed    Write uncompressed data to file\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
