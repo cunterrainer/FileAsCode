@@ -1,4 +1,5 @@
 const std = @import("std");
+const stb = @cImport(@cInclude("stb_image.c"));
 
 pub fn write_bytes_format(writer: anytype, buffer: []const u8) !void
 {
@@ -142,6 +143,7 @@ pub fn parse_args(args: [][] u8) Settings
         }
         else if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help"))
         {
+            settings.valid = false;
             print_help(args[0]);
             return settings;
         }
@@ -165,9 +167,17 @@ pub fn parse_args(args: [][] u8) Settings
 }
 
 
+const Image = struct {
+    data: [*c] u8 = undefined,
+    width: c_int = 0,
+    height: c_int = 0,
+    channel: c_int = 0
+};
+
+
 pub fn main() !void
 {
-    const allocator = std.heap.page_allocator;
+    const allocator = std.heap.c_allocator; // because of stb compatibility (stb calls malloc/free under the hood)
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
     const settings = parse_args(args);
@@ -177,27 +187,40 @@ pub fn main() !void
         return;
     }
 
-
-    var in_file: std.fs.File = undefined;
-    if (std.fs.cwd().openFile(settings.input_file, .{})) |file|
+    var char_buffer: [] u8 = "";
+    defer if (char_buffer.len > 0) allocator.free(char_buffer);
+    if (settings.uncompressed_data)
     {
-        in_file = file;
+        var img: Image = .{};
+        var s = stb.stbi_load(settings.input_file.ptr, &img.width, &img.height, &img.channel,  0);
+        if (s == null)
+        {
+            print_err("Failed to open file '{s}': {s}", .{ settings.input_file, stb.stbi_failure_reason() });
+            return;
+        }
+        char_buffer = s[0..@intCast(img.width*img.height*img.channel)];
     }
-    else |err|
+    else
     {
-        print_err("Failed to open file '{s}': {}\n", .{settings.input_file, err});
-        return;
+        var in_file: std.fs.File = undefined;
+        if (std.fs.cwd().openFile(settings.input_file, .{})) |file|
+        {
+            in_file = file;
+        }
+        else |err|
+        {
+            print_err("Failed to open file '{s}': {}\n", .{settings.input_file, err});
+            return;
+        }
+        defer in_file.close();
+        char_buffer = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
+        _ = try in_file.readAll(char_buffer);
     }
-    defer in_file.close();
-
-    const result = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
-    defer allocator.free(result);
-    _ = try in_file.readAll(result);
 
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
     try write_file_header(buf.writer());
-    try write_bytes_format(buf.writer(), result);
+    try write_bytes_format(buf.writer(), char_buffer);
     try buf.flush();
     out_writer.close();
 }

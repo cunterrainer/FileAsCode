@@ -35,6 +35,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    exe.addIncludePath(.{.path = "src"});
+    exe.addCSourceFile(.{ .file = .{.path = "src/stb_image.c" }, .flags = &[_][]const u8 { "-DSTB_IMAGE_IMPLEMENTATION" } });
+    exe.linkLibC();
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
