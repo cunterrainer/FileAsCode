@@ -87,10 +87,10 @@ pub fn print_help(path: [] const u8) void
     print("        -h   | --help            Show this info message\n", .{});
     print("        -u   | --uncompressed    Write uncompressed data to file (jpeg, png, tga, gmp, psd, gif, hdr, pic, pnm)\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
-    print("        --no-hash                Don't include a hash in top comment (e.g. if file is very large)\n", .{});
-    print("        --hash-only [fn]         Just hash the file and print the value\n", .{});
-    print("        --hash-text [fn]         Treat the file path from '-i' as text and hash the text\n", .{});
-    print("        --hash [fn]              Include the hash of the file as variable (Default Sha256)\n", .{});
+    print("        -nh  | --no-hash         Don't include a hash in top comment (e.g. if file is very large)\n", .{});
+    print("        -ho  | --hash-only [fn]  Just hash the file and print the value\n", .{});
+    print("        -ht  | --hash-text [fn]  Treat the file path from '-i' as text and hash the text\n", .{});
+    print("        -hh  | --hash [fn]       Include the hash of the file as variable (Default Sha256)\n", .{});
     print("                                 Supported functions are: md5, sha1,\n", .{});
     print("                                 sha224, sha256, sha384, sha512, sha512-256,\n", .{});
     print("                                 sha3-224, sha3-256, sha3-384, sha3-512\n", .{});
@@ -211,12 +211,12 @@ pub fn parse_args(args: [][] u8) !Settings
         {
             settings.inline_vars = true;
         }
-        else if (str.cmp("--no-hash"))
+        else if (str.cmp("--no-hash") or str.cmp("-nh"))
         {
             settings.hash_variable = false;
             settings.hash_function = HashFunctions.None;
         }
-        else if (str.cmp("--hash") or str.cmp("--hash-only") or str.cmp("--hash-text"))
+        else if (str.cmp("--hash") or str.cmp("--hash-only") or str.cmp("--hash-text") or str.cmp("-hh") or str.cmp("-ho") or str.cmp("-ht"))
         {
             if (i + 1 == args.len)
             {
@@ -232,13 +232,13 @@ pub fn parse_args(args: [][] u8) !Settings
                 skip = true;
                 settings.hash_function = v;
 
-                if (str.cmp("--hash"))
+                if (str.cmp("--hash") or str.cmp("-hh"))
                 {
                     settings.hash_only = false;
                     settings.hash_text = false;
                     settings.hash_variable = true;
                 }
-                else if (str.cmp("--hash-only"))
+                else if (str.cmp("--hash-only") or str.cmp("-ho"))
                 {
                     settings.hash_variable = false;
                     settings.hash_text = false;
