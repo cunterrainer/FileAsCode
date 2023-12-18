@@ -46,7 +46,7 @@ pub fn write_file_header(content: string, hash_value: [] u8, writer: anytype) !v
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //\n");
     _ = try writer.write("//                                                                              //\n");
-    _ = try writer.print("// hash: {s}       //\n", .{std.fmt.fmtSliceHexLower(hash_value)});
+    _ = try writer.print("// hash: {s}       //\n", .{hash_value});
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("//////////////////////////////////////////////////////////////////////////////////\n\n");
     _ = try writer.write(content.buffer.?[0..content.size]);
@@ -58,6 +58,7 @@ const Settings = struct {
     output_file: [] const u8 = undefined,
     valid: bool = true,
     c_style: bool = true,
+    hash: bool = false,
     inline_vars: bool = false,
     uncompressed_data: bool = false
 };
@@ -85,6 +86,7 @@ pub fn print_help(path: [] const u8) void
     print("        -h   | --help            Show this info message\n", .{});
     print("        -u   | --uncompressed    Write uncompressed data to file\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
+    print("        --hash                   Include the hash of the file as variable\n", .{});
 }
 
 
@@ -162,6 +164,10 @@ pub fn parse_args(args: [][] u8) Settings
         {
             settings.inline_vars = true;
         }
+        else if (str.cmp("--hash"))
+        {
+            settings.hash = true;
+        }
         else
         {
             settings.valid = false;
@@ -195,13 +201,27 @@ pub fn variable_modifier(c_style: bool, to_inline: bool) [] const u8
 }
 
 
+pub fn memset(buffer: [] u8, size: usize, elem: u8) []u8
+{
+    for (0..size) |i|
+    {
+        buffer[i] = elem;
+    }
+    return buffer;
+}
+
+
 pub fn hash(buffer: [] const u8, out_buffer: [] u8) void
 {
-    //var hash_value = string.init(std.heap.page_allocator);
-    //hash_value.allocate(std.crypto.hash.sha2)
-    //_ = hash_value;
-    //var out_buffer: [std.crypto.hash.sha2.Sha256.digest_length] u8 = undefined;
-    std.crypto.hash.sha2.Sha256.hash(buffer, out_buffer[0..32], .{});
+    var out_buffer_int: [32] u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(buffer, out_buffer_int[0..32], .{});
+
+    var idx: usize = 0;
+    for (out_buffer_int) |c|
+    {
+        _ = std.fmt.bufPrint(out_buffer[idx..idx+2], "{x:0>2}", .{c}) catch memset(out_buffer[idx..idx+2], 2, '0');
+        idx += 2;
+    }
 }
 
 
@@ -218,7 +238,7 @@ pub fn main() !void
     }
     const var_modifier = variable_modifier(settings.c_style, settings.inline_vars);
 
-    var hash_out_buffer: [std.crypto.hash.sha2.Sha256.digest_length] u8 = undefined;
+    var hash_out_buffer: [64] u8 = undefined;
     var custom_header_content = try string.init_with_contents(allocator, "");
     defer custom_header_content.deinit();
 
@@ -255,6 +275,16 @@ pub fn main() !void
     }
 
     hash(file_data, &hash_out_buffer);
+    if (settings.hash)
+    {
+        try custom_header_content.concat(var_modifier);
+        if (!settings.c_style)
+            try custom_header_content.concat(" const "); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
+        try custom_header_content.concat(" char* sg_File_as_code_hash = \"");
+        try custom_header_content.concat(&hash_out_buffer);
+        try custom_header_content.concat("\";\n\n");
+    }
+
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
     try write_file_header(custom_header_content, &hash_out_buffer, buf.writer());
