@@ -81,7 +81,7 @@ pub fn print_help(path: [] const u8) void
     print("        -h   | --help            Show this info message\n", .{});
     print("        -u   | --uncompressed    Write uncompressed data to file\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
-    print("        --hash=[function]        Include the hash of the file as variable (Default Sha256)\n", .{});
+    print("        --hash [function]        Include the hash of the file as variable (Default Sha256)\n", .{});
     print("                                 Supported functions are: md5, sha1,\n", .{});
     print("                                 sha224, sha256, sha384, sha512, sha512-256,\n", .{});
     print("                                 sha3-224, sha3-256, sha3-384, sha3-512\n", .{});
