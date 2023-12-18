@@ -52,12 +52,12 @@ pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: []
 
 
 const Settings = struct {
-    input_file: [] const u8 = undefined,
-    output_file: [] const u8 = undefined,
+    input_file: [] const u8 = "",
+    output_file: [] const u8 = "",
     valid: bool = true,
     c_style: bool = true,
     hash_variable: bool = false,
-    hash_function: HashFunctions = undefined,
+    hash_function: HashFunctions = HashFunctions.Sha256,
     inline_vars: bool = false,
     uncompressed_data: bool = false
 };
@@ -134,9 +134,7 @@ pub fn parse_args(args: [][] u8) !Settings
     var hash_functions_map = try generate_hash_functions_map();
     defer hash_functions_map.deinit();
 
-    var settings: Settings = .{
-        .hash_function = HashFunctions.Sha256
-    };
+    var settings: Settings = .{};
 
     if (args.len == 1)
     {
