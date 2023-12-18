@@ -28,7 +28,7 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
 }
 
 
-pub fn write_file_header(content: string, writer: anytype) !void
+pub fn write_file_header(content: string, hash_value: [] u8, writer: anytype) !void
 {
     //////////////////////////////////////////////////////////////////////////////////
     //                                                                              //
@@ -45,6 +45,8 @@ pub fn write_file_header(content: string, writer: anytype) !void
     _ = try writer.write("// FileAsCode exporter                                                          //\n");
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //\n");
+    _ = try writer.write("//                                                                              //\n");
+    _ = try writer.print("// hash: {s}       //\n", .{std.fmt.fmtSliceHexLower(hash_value)});
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("//////////////////////////////////////////////////////////////////////////////////\n\n");
     _ = try writer.write(content.buffer.?[0..content.size]);
@@ -193,6 +195,16 @@ pub fn variable_modifier(c_style: bool, to_inline: bool) [] const u8
 }
 
 
+pub fn hash(buffer: [] const u8, out_buffer: [] u8) void
+{
+    //var hash_value = string.init(std.heap.page_allocator);
+    //hash_value.allocate(std.crypto.hash.sha2)
+    //_ = hash_value;
+    //var out_buffer: [std.crypto.hash.sha2.Sha256.digest_length] u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(buffer, out_buffer[0..32], .{});
+}
+
+
 pub fn main() !void
 {
     const allocator = std.heap.page_allocator;
@@ -206,6 +218,7 @@ pub fn main() !void
     }
     const var_modifier = variable_modifier(settings.c_style, settings.inline_vars);
 
+    var hash_out_buffer: [std.crypto.hash.sha2.Sha256.digest_length] u8 = undefined;
     var custom_header_content = try string.init_with_contents(allocator, "");
     defer custom_header_content.deinit();
 
@@ -241,9 +254,10 @@ pub fn main() !void
         in_file.close();
     }
 
+    hash(file_data, &hash_out_buffer);
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
-    try write_file_header(custom_header_content, buf.writer());
+    try write_file_header(custom_header_content, &hash_out_buffer, buf.writer());
     try write_bytes_format(var_modifier, buf.writer(), file_data);
     try buf.flush();
     defer out_writer.close();
