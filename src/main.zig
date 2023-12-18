@@ -28,7 +28,7 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
 }
 
 
-pub fn write_file_header(content: string, hash_value: [] u8, writer: anytype) !void
+pub fn write_file_header(content: string, hash_value: [] const u8, writer: anytype) !void
 {
     //////////////////////////////////////////////////////////////////////////////////
     //                                                                              //
@@ -272,17 +272,66 @@ pub fn memset(buffer: [] u8, size: usize, elem: u8) []u8
 }
 
 
-pub fn hash(buffer: [] const u8, out_buffer: [] u8) void
+pub fn hash(buffer: [] const u8, out_buffer: [] u8, hash_function: HashFunctions) usize
 {
-    var out_buffer_int: [32] u8 = undefined;
-    std.crypto.hash.sha2.Sha256.hash(buffer, out_buffer_int[0..32], .{});
+    var length: usize = 0;
+    var out_buffer_int: [64] u8 = undefined;
+    switch(hash_function)
+    {
+        .MD5 => {
+            length = std.crypto.hash.Md5.digest_length;
+            std.crypto.hash.Md5.hash(buffer, out_buffer_int[0..std.crypto.hash.Md5.digest_length], .{});
+        },
+        .Sha1 => {
+            length = std.crypto.hash.Sha1.digest_length;
+            std.crypto.hash.Sha1.hash(buffer, out_buffer_int[0..std.crypto.hash.Sha1.digest_length], .{});
+        },
+        .Sha224 => {
+            length = std.crypto.hash.sha2.Sha224.digest_length;
+            std.crypto.hash.sha2.Sha224.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha224.digest_length], .{});
+        },
+        .Sha256 => {
+            length = std.crypto.hash.sha2.Sha256.digest_length;
+            std.crypto.hash.sha2.Sha256.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha256.digest_length], .{});
+        },
+        .Sha384 => {
+            length = std.crypto.hash.sha2.Sha384.digest_length;
+            std.crypto.hash.sha2.Sha384.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha384.digest_length], .{});
+        },
+        .Sha512 => {
+            length = std.crypto.hash.sha2.Sha512.digest_length;
+            std.crypto.hash.sha2.Sha512.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha512.digest_length], .{});
+        },
+        .Sha512_256 => {
+            length = std.crypto.hash.sha2.Sha512256.digest_length;
+            std.crypto.hash.sha2.Sha512256.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha512256.digest_length], .{});
+        },
+        .Sha3_224 => {
+            length = std.crypto.hash.sha3.Sha3_224.digest_length;
+            std.crypto.hash.sha3.Sha3_224.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_224.digest_length], .{});
+        },
+        .Sha3_256 => {
+            length = std.crypto.hash.sha3.Sha3_256.digest_length;
+            std.crypto.hash.sha3.Sha3_256.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_256.digest_length], .{});
+        },
+        .Sha3_384 => {
+            length = std.crypto.hash.sha3.Sha3_384.digest_length;
+            std.crypto.hash.sha3.Sha3_384.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_384.digest_length], .{});
+        },
+        .Sha3_512 => {
+            length = std.crypto.hash.sha3.Sha3_512.digest_length;
+            std.crypto.hash.sha3.Sha3_512.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_512.digest_length], .{});
+        }
+    }
 
     var idx: usize = 0;
-    for (out_buffer_int) |c|
+    for (0..length) |i|
     {
-        _ = std.fmt.bufPrint(out_buffer[idx..idx+2], "{x:0>2}", .{c}) catch memset(out_buffer[idx..idx+2], 2, '0');
+        _ = std.fmt.bufPrint(out_buffer[idx..idx+2], "{x:0>2}", .{out_buffer_int[i]}) catch memset(out_buffer[idx..idx+2], 2, '0');
         idx += 2;
     }
+
+    return length*2;
 }
 
 
@@ -299,7 +348,6 @@ pub fn main() !void
     }
     const var_modifier = variable_modifier(settings.c_style, settings.inline_vars);
 
-    var hash_out_buffer: [64] u8 = undefined;
     var custom_header_content = try string.init_with_contents(allocator, "");
     defer custom_header_content.deinit();
 
@@ -335,20 +383,21 @@ pub fn main() !void
         in_file.close();
     }
 
-    hash(file_data, &hash_out_buffer);
+    var hash_out_buffer: [128] u8 = undefined;
+    const hash_length = hash(file_data, &hash_out_buffer, settings.hash_function);
     if (settings.hash)
     {
         try custom_header_content.concat(var_modifier);
         if (!settings.c_style)
             try custom_header_content.concat(" const "); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
         try custom_header_content.concat(" char* sg_File_as_code_hash = \"");
-        try custom_header_content.concat(&hash_out_buffer);
+        try custom_header_content.concat(hash_out_buffer[0..hash_length]);
         try custom_header_content.concat("\";\n\n");
     }
 
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
-    try write_file_header(custom_header_content, &hash_out_buffer, buf.writer());
+    try write_file_header(custom_header_content, hash_out_buffer[0..hash_length], buf.writer());
     try write_bytes_format(var_modifier, buf.writer(), file_data);
     try buf.flush();
     defer out_writer.close();
