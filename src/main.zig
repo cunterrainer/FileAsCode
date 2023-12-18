@@ -168,14 +168,6 @@ pub fn parse_args(args: [][] u8) Settings
 }
 
 
-const Image = struct {
-    data: [*c] u8 = undefined,
-    width: c_int = 0,
-    height: c_int = 0,
-    channel: c_int = 0
-};
-
-
 pub fn int_to_string(str: *string, num: c_int, comptime buff: [] const u8, comptime buff2: [] const u8) !void
 {
 
@@ -207,17 +199,19 @@ pub fn main() !void
     defer if (!std.mem.eql(u8, file_data, "")) allocator.free(file_data);
     if (settings.uncompressed_data)
     {
-        var img: Image = .{};
-        var s = stb.stbi_load(settings.input_file.ptr, &img.width, &img.height, &img.channel,  0);
+        var width: c_int = 0;
+        var height: c_int = 0;
+        var channel: c_int = 0;
+        var s = stb.stbi_load(settings.input_file.ptr, &width, &height, &channel,  0);
         if (s == null)
         {
             print_err("Failed to open file '{s}': {s}", .{ settings.input_file, stb.stbi_failure_reason() });
             return;
         }
-        file_data = s[0..@intCast(img.width*img.height*img.channel)];
-        try int_to_string(&custom_header_content, img.width,   "static const unsigned char sg_File_as_code_width   = ", ";\n");
-        try int_to_string(&custom_header_content, img.height,  "static const unsigned char sg_File_as_code_height  = ", ";\n");
-        try int_to_string(&custom_header_content, img.channel, "static const unsigned char sg_File_as_code_channel = ", ";\n\n");    }
+        file_data = s[0..@intCast(width*height*channel)];
+        try int_to_string(&custom_header_content, width,   "static const unsigned char sg_File_as_code_width   = ", ";\n");
+        try int_to_string(&custom_header_content, height,  "static const unsigned char sg_File_as_code_height  = ", ";\n");
+        try int_to_string(&custom_header_content, channel, "static const unsigned char sg_File_as_code_channel = ", ";\n\n");    }
     else
     {
         var in_file = std.fs.cwd().openFile(settings.input_file, .{}) catch |err|
