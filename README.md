@@ -12,6 +12,17 @@ Raw conversion supports every single file type, that conversion to just get the 
  - PIC (Softimage PIC)
  - PNM (PPM and PGM binary only)
 
+# Prebuilt Binaries
+
+For your convenience, prebuilt binaries are available in the `bin/` folder. These binaries are compiled for Windows and Linux operating systems.
+
+## Version Compatibility
+
+Please note that the prebuilt binaries may be associated with a specific version of FileAsCode. Ensure that you are using a compatible version to avoid potential compatibility issues. If needed, you can also build the program from source following the instructions in the Build section.
+
+If you encounter any platform-specific issues or have questions about the prebuilt binaries, feel free to reach out on the [GitHub repository](https://github.com/pyvyx/FileAsCode/issues).
+
+
 # Build
 If you're on windows you can simply use the provided binary that can be found in the release section.  
 Build it yourself:
