@@ -83,7 +83,7 @@ pub fn print_help(path: [] const u8) void
     print("        -c   | --c-style         Use C-Style variable qualifiers (const)\n", .{});
     print("        -c++ | --cplusplus       Use C-Style variable qualifiers (constexpr)\n", .{});
     print("        -h   | --help            Show this info message\n", .{});
-    print("        -u   | --uncompressed    Write uncompressed data to file\n", .{});
+    print("        -u   | --uncompressed    Write uncompressed data to file (jpeg, png, tga, gmp, psd, gif, hdr, pic, pnm)\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
     print("        --no-hash                Don't include a hash in top comment (e.g. if file is very large)\n", .{});
     print("        --hash [function]        Include the hash of the file as variable (Default Sha256)\n", .{});
