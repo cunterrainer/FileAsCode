@@ -41,8 +41,12 @@ pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: []
     _ = try writer.write("#ifndef FILE_AS_CODE_H\n");
     _ = try writer.write("#define FILE_AS_CODE_H\n");
     _ = try writer.write("/*\n\tFileAsCode exporter\n\n");
-    _ = try writer.write("\tmore infos and bug-reports: https://github.com/pyvyx/FileAsCode\n\n");
-    _ = try writer.print("\t{s}: {s}\n\n*/\n\n", .{ hash_name, hash_value });
+    _ = try writer.write("\tmore infos and bug-reports: https://github.com/pyvyx/FileAsCode\n");
+    if (hash_name.len > 0)
+    {
+        _ = try writer.print("\n\t{s}: {s}\n", .{ hash_name, hash_value });
+    }
+    _ = try writer.write("*/\n\n");
     _ = try writer.write(content.buffer.?[0..content.size]);
 }
 
@@ -52,7 +56,7 @@ const Settings = struct {
     output_file: [] const u8 = undefined,
     valid: bool = true,
     c_style: bool = true,
-    hash: bool = false,
+    hash_variable: bool = false,
     hash_function: HashFunctions = undefined,
     inline_vars: bool = false,
     uncompressed_data: bool = false
@@ -81,6 +85,7 @@ pub fn print_help(path: [] const u8) void
     print("        -h   | --help            Show this info message\n", .{});
     print("        -u   | --uncompressed    Write uncompressed data to file\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
+    print("        --no-hash                Don't include a hash in top comment (e.g. if file is very large)", .{});
     print("        --hash [function]        Include the hash of the file as variable (Default Sha256)\n", .{});
     print("                                 Supported functions are: md5, sha1,\n", .{});
     print("                                 sha224, sha256, sha384, sha512, sha512-256,\n", .{});
@@ -90,6 +95,7 @@ pub fn print_help(path: [] const u8) void
 
 
 const HashFunctions = enum {
+    None,
     MD5,
     Sha1,
     Sha224,
@@ -128,7 +134,9 @@ pub fn parse_args(args: [][] u8) !Settings
     var hash_functions_map = try generate_hash_functions_map();
     defer hash_functions_map.deinit();
 
-    var settings: Settings = .{};
+    var settings: Settings = .{
+        .hash_function = HashFunctions.Sha256
+    };
 
     if (args.len == 1)
     {
@@ -200,6 +208,11 @@ pub fn parse_args(args: [][] u8) !Settings
         {
             settings.inline_vars = true;
         }
+        else if (str.cmp("--no-hash"))
+        {
+            settings.hash_variable = false;
+            settings.hash_function = HashFunctions.None;
+        }
         else if (str.cmp("--hash"))
         {
             if (i + 1 == args.len)
@@ -212,9 +225,9 @@ pub fn parse_args(args: [][] u8) !Settings
             const hash_function = hash_functions_map.get(args[i+1]);
             if (hash_function) |v|
             {
-                settings.hash_function = v;
                 skip = true;
-                settings.hash = true;
+                settings.hash_function = v;
+                settings.hash_variable = true;
             }
             else
             {
@@ -327,7 +340,8 @@ pub fn hash(buffer: [] const u8, out_buffer: [] u8, hash_function: HashFunctions
             try hash_name.concat("sha3_512");
             length = std.crypto.hash.sha3.Sha3_512.digest_length;
             std.crypto.hash.sha3.Sha3_512.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_512.digest_length], .{});
-        }
+        },
+        .None => {}
     }
 
     var idx: usize = 0;
@@ -391,18 +405,23 @@ pub fn main() !void
 
     var hash_name: string = string.init(allocator);
     defer hash_name.deinit();
+    var hash_length : usize = 0;
     var hash_out_buffer: [128] u8 = undefined;
-    const hash_length = try hash(file_data, &hash_out_buffer, settings.hash_function, &hash_name);
-    if (settings.hash)
+    if (settings.hash_function != HashFunctions.None)
     {
-        try custom_header_content.concat(var_modifier);
-        if (!settings.c_style)
-            try custom_header_content.concat(" const "); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
-        try custom_header_content.concat(" char* sg_File_as_code_");
-        try custom_header_content.concat(hash_name.str());
-        try custom_header_content.concat(" = \"");
-        try custom_header_content.concat(hash_out_buffer[0..hash_length]);
-        try custom_header_content.concat("\";\n\n");
+        hash_length = try hash(file_data, &hash_out_buffer, settings.hash_function, &hash_name);
+
+        if (settings.hash_variable)
+        {
+            try custom_header_content.concat(var_modifier);
+            if (!settings.c_style)
+                try custom_header_content.concat(" const "); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
+            try custom_header_content.concat(" char* sg_File_as_code_");
+            try custom_header_content.concat(hash_name.str());
+            try custom_header_content.concat(" = \"");
+            try custom_header_content.concat(hash_out_buffer[0..hash_length]);
+            try custom_header_content.concat("\";\n\n");
+        }
     }
 
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
