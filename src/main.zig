@@ -361,7 +361,7 @@ pub fn uncompress_data(allocator: std.mem.Allocator, path: [] const u8, header_c
     const s = stb.stbi_load(path.ptr, &width, &height, &channel,  0);
     if (s == null)
     {
-        print_err("Failed to open file '{s}': {s}", .{ path, stb.stbi_failure_reason() });
+        print_err("Failed to open file '{s}': {s}\n", .{ path, stb.stbi_failure_reason() });
         return null;
     }
     // We have to copy the image data, otherwise we would be freeing file_data of type [] u8 instead of [*c] u8 which can cause segfaults
@@ -445,6 +445,6 @@ pub fn app() !void
 pub fn main() !void
 {
     app() catch |e| {
-        try std.io.getStdErr().writer().print("Unhandled exception occured: {}", .{ e });
+        try std.io.getStdErr().writer().print("Unhandled exception occured: {}\n", .{ e });
     };
 }
