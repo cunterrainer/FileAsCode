@@ -195,7 +195,7 @@ pub fn variable_modifier(c_style: bool, to_inline: bool) [] const u8
 
 pub fn main() !void
 {
-    const allocator = std.heap.c_allocator; // because of stb compatibility (stb calls malloc/free under the hood)
+    const allocator = std.heap.page_allocator;
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
     const settings = parse_args(args);
