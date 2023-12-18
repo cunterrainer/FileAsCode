@@ -57,6 +57,7 @@ const Settings = struct {
     valid: bool = true,
     c_style: bool = true,
     hash_variable: bool = false,
+    hash_only: bool = false,
     hash_function: HashFunctions = HashFunctions.Sha256,
     inline_vars: bool = false,
     uncompressed_data: bool = false
@@ -86,6 +87,7 @@ pub fn print_help(path: [] const u8) void
     print("        -u   | --uncompressed    Write uncompressed data to file (jpeg, png, tga, gmp, psd, gif, hdr, pic, pnm)\n", .{});
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
     print("        --no-hash                Don't include a hash in top comment (e.g. if file is very large)\n", .{});
+    print("        --hash-only [function]   Just hash the file and print the value\n", .{});
     print("        --hash [function]        Include the hash of the file as variable (Default Sha256)\n", .{});
     print("                                 Supported functions are: md5, sha1,\n", .{});
     print("                                 sha224, sha256, sha384, sha512, sha512-256,\n", .{});
@@ -212,7 +214,7 @@ pub fn parse_args(args: [][] u8) !Settings
             settings.hash_variable = false;
             settings.hash_function = HashFunctions.None;
         }
-        else if (str.cmp("--hash"))
+        else if (str.cmp("--hash") or str.cmp("--hash-only"))
         {
             if (i + 1 == args.len)
             {
@@ -227,7 +229,17 @@ pub fn parse_args(args: [][] u8) !Settings
             {
                 skip = true;
                 settings.hash_function = v;
-                settings.hash_variable = true;
+
+                if (str.cmp("--hash"))
+                {
+                    settings.hash_only = false;
+                    settings.hash_variable = true;
+                }
+                else
+                {
+                    settings.hash_variable = false;
+                    settings.hash_only = true;
+                }
             }
             else
             {
@@ -431,6 +443,11 @@ pub fn app() !void
             try custom_header_content.concat(" = \"");
             try custom_header_content.concat(hash_out_buffer[0..hash_length]);
             try custom_header_content.concat("\";\n\n");
+        }
+        else if (settings.hash_only)
+        {
+            print("{s}: {s}\n", .{ hash_name.str(), hash_out_buffer[0..hash_length] });
+            return;
         }
     }
 
