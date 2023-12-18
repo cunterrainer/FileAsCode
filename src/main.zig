@@ -89,7 +89,7 @@ pub fn print_help(path: [] const u8) void
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
     print("        --hash=[function]        Include the hash of the file as variable (Default Sha256)\n", .{});
     print("                                 Supported functions are: md5, sha1,\n", .{});
-    print("                                 sha2-224, sha2-256, sha2-384, sha2-512, sha2-512-256,\n", .{});
+    print("                                 sha224, sha256, sha384, sha512, sha512-256,\n", .{});
     print("                                 sha3-224, sha3-256, sha3-384, sha3-512\n", .{});
 }
 
@@ -97,11 +97,11 @@ pub fn print_help(path: [] const u8) void
 const HashFunctions = enum {
     MD5,
     Sha1,
-    Sha2_224,
-    Sha2_256,
-    Sha2_384,
-    Sha2_512,
-    Sha2_512_256,
+    Sha224,
+    Sha256,
+    Sha384,
+    Sha512,
+    Sha512_256,
     Sha3_224,
     Sha3_256,
     Sha3_384,
@@ -115,11 +115,11 @@ pub fn generate_hash_functions_map() !std.StringHashMap(HashFunctions)
     var hash_functions_map = std.StringHashMap(HashFunctions).init(std.heap.page_allocator);
     try hash_functions_map.put("md5", HashFunctions.MD5);
     try hash_functions_map.put("sha1", HashFunctions.Sha1);
-    try hash_functions_map.put("sha2-224", HashFunctions.Sha2_224);
-    try hash_functions_map.put("sha2-256", HashFunctions.Sha2_256);
-    try hash_functions_map.put("sha2-384", HashFunctions.Sha2_384);
-    try hash_functions_map.put("sha2-512", HashFunctions.Sha2_512);
-    try hash_functions_map.put("sha2-512-256", HashFunctions.Sha2_512_256);
+    try hash_functions_map.put("sha224", HashFunctions.Sha224);
+    try hash_functions_map.put("sha256", HashFunctions.Sha256);
+    try hash_functions_map.put("sha384", HashFunctions.Sha384);
+    try hash_functions_map.put("sha512", HashFunctions.Sha512);
+    try hash_functions_map.put("sha512-256", HashFunctions.Sha512_256);
     try hash_functions_map.put("sha3-224", HashFunctions.Sha3_224);
     try hash_functions_map.put("sha3-256", HashFunctions.Sha3_256);
     try hash_functions_map.put("sha3-384", HashFunctions.Sha3_384);
@@ -225,7 +225,7 @@ pub fn parse_args(args: [][] u8) !Settings
             {
                 settings.valid = false;
                 print_err("Invalid hash function '{s}'\n", .{ args[i+1] });
-                print_err("Supported functions are: md5, sha1, sha2-224, sha2-256, sha2-384, sha2-512, sha2-512-256, sha3-224, sha3-256, sha3-384, sha3-512\nTry '--help' for additional information\n", .{});
+                print_err("Supported functions are: md5, sha1, sha224, sha256, sha384, sha512, sha512-256, sha3-224, sha3-256, sha3-384, sha3-512\nTry '--help' for additional information\n", .{});
                 return settings;
             }
         }
