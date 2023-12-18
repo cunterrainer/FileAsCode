@@ -423,7 +423,7 @@ pub fn app() !void
         {
             try custom_header_content.concat(var_modifier);
             if (!settings.c_style)
-                try custom_header_content.concat(" const "); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
+                try custom_header_content.concat(" const"); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
             try custom_header_content.concat(" char* sg_File_as_code_");
             try custom_header_content.concat(hash_name.str());
             try custom_header_content.concat(" = \"");
