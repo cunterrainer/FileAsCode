@@ -59,6 +59,7 @@ const Settings = struct {
     valid: bool = true,
     c_style: bool = true,
     hash: bool = false,
+    hash_function: HashFunctions = undefined,
     inline_vars: bool = false,
     uncompressed_data: bool = false
 };
@@ -93,8 +94,45 @@ pub fn print_help(path: [] const u8) void
 }
 
 
-pub fn parse_args(args: [][] u8) Settings
+const HashFunctions = enum {
+    MD5,
+    Sha1,
+    Sha2_224,
+    Sha2_256,
+    Sha2_384,
+    Sha2_512,
+    Sha2_512_256,
+    Sha3_224,
+    Sha3_256,
+    Sha3_384,
+    Sha3_512
+};
+
+
+pub fn generate_hash_functions_map() !std.StringHashMap(HashFunctions)
 {
+    // md5, sha1, sha2-224, sha2-256, sha2-384, sha2-512, sha2-512-256, sha3-224, sha3-256, sha3-384, sha3-512
+    var hash_functions_map = std.StringHashMap(HashFunctions).init(std.heap.page_allocator);
+    try hash_functions_map.put("md5", HashFunctions.MD5);
+    try hash_functions_map.put("sha1", HashFunctions.Sha1);
+    try hash_functions_map.put("sha2-224", HashFunctions.Sha2_224);
+    try hash_functions_map.put("sha2-256", HashFunctions.Sha2_256);
+    try hash_functions_map.put("sha2-384", HashFunctions.Sha2_384);
+    try hash_functions_map.put("sha2-512", HashFunctions.Sha2_512);
+    try hash_functions_map.put("sha2-512-256", HashFunctions.Sha2_512_256);
+    try hash_functions_map.put("sha3-224", HashFunctions.Sha3_224);
+    try hash_functions_map.put("sha3-256", HashFunctions.Sha3_256);
+    try hash_functions_map.put("sha3-384", HashFunctions.Sha3_384);
+    try hash_functions_map.put("sha3-512", HashFunctions.Sha3_512);
+    return hash_functions_map;
+}
+
+
+pub fn parse_args(args: [][] u8) !Settings
+{
+    var hash_functions_map = try generate_hash_functions_map();
+    defer hash_functions_map.deinit();
+
     var settings: Settings = .{};
 
     if (args.len == 1)
@@ -169,7 +207,27 @@ pub fn parse_args(args: [][] u8) Settings
         }
         else if (str.cmp("--hash"))
         {
-            settings.hash = true;
+            if (i + 1 == args.len)
+            {
+                settings.valid = false;
+                print_err("Missing hash function after '{s}'\nTry '--help' for additional information\n", .{arg});
+                return settings;
+            }
+
+            const hash_function = hash_functions_map.get(args[i+1]);
+            if (hash_function) |v|
+            {
+                settings.hash_function = v;
+                skip = true;
+                settings.hash = true;
+            }
+            else
+            {
+                settings.valid = false;
+                print_err("Invalid hash function '{s}'\n", .{ args[i+1] });
+                print_err("Supported functions are: md5, sha1, sha2-224, sha2-256, sha2-384, sha2-512, sha2-512-256, sha3-224, sha3-256, sha3-384, sha3-512\nTry '--help' for additional information\n", .{});
+                return settings;
+            }
         }
         else
         {
@@ -233,7 +291,7 @@ pub fn main() !void
     const allocator = std.heap.page_allocator;
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
-    const settings = parse_args(args);
+    const settings = try parse_args(args);
 
     if (!settings.valid)
     {
