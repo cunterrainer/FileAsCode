@@ -215,13 +215,16 @@ pub fn main() !void
         var width: c_int = 0;
         var height: c_int = 0;
         var channel: c_int = 0;
-        var s = stb.stbi_load(settings.input_file.ptr, &width, &height, &channel,  0);
+        const s = stb.stbi_load(settings.input_file.ptr, &width, &height, &channel,  0);
         if (s == null)
         {
             print_err("Failed to open file '{s}': {s}", .{ settings.input_file, stb.stbi_failure_reason() });
             return;
         }
-        file_data = s[0..@intCast(width*height*channel)];
+        // We have to copy the image data, otherwise we would be freeing file_data of type [] u8 instead of [*c] u8 which can cause segfaults
+        file_data = try allocator.alloc(u8, @intCast(width*height*channel));
+        std.mem.copyForwards(u8, file_data, s[0..@intCast(width*height*channel)]);
+        stb.stbi_image_free(s);
         try int_to_string(&custom_header_content, width,   var_modifier, " unsigned char sg_File_as_code_width   = ", ";\n");
         try int_to_string(&custom_header_content, height,  var_modifier, " unsigned char sg_File_as_code_height  = ", ";\n");
         try int_to_string(&custom_header_content, channel, var_modifier, " unsigned char sg_File_as_code_channel = ", ";\n\n");    }
