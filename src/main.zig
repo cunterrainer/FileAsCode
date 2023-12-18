@@ -2,9 +2,9 @@ const std = @import("std");
 const string = @import("string.zig").String;
 const stb = @cImport(@cInclude("stb_image.c"));
 
-pub fn write_bytes_format(writer: anytype, buffer: []const u8) !void
+pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []const u8) !void
 {
-    _ = try writer.write("static const unsigned char sg_File_as_code[] =\n{\n\t");
+    _ = try writer.print("{s} unsigned char sg_File_as_code[] =\n{{\n\t", .{var_modifier});
     
     var processed: usize = 0;
     for (buffer) |c|
@@ -23,7 +23,7 @@ pub fn write_bytes_format(writer: anytype, buffer: []const u8) !void
             _ = try writer.print("0x{X:0>2}, ", .{c});
         }
     }
-    _ = try writer.write("static const unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n");
+    _ = try writer.print("{s} unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", .{var_modifier});
     _ = try writer.write("#endif // FILE_AS_CODE_H");
 }
 
@@ -168,14 +168,24 @@ pub fn parse_args(args: [][] u8) Settings
 }
 
 
-pub fn int_to_string(str: *string, num: c_int, comptime buff: [] const u8, comptime buff2: [] const u8) !void
+pub fn int_to_string(str: *string, num: c_int, var_modifier: [] const u8, comptime var_name: [] const u8, comptime var_end: [] const u8) !void
 {
-
     var num_buffer: [20] u8 = undefined; // 20 should never be reached
     const char_size = try std.fmt.bufPrint(&num_buffer, "{d}", .{num});
-    try str.concat(buff);
+    try str.concat(var_modifier);
+    try str.concat(var_name);
     try str.concat(num_buffer[0..char_size.len]);
-    try str.concat(buff2);
+    try str.concat(var_end);
+}
+
+
+pub fn variable_modifier(c_style: bool, to_inline: bool) [] const u8
+{
+    if (c_style)
+        return "static const";
+    if (to_inline)
+        return "inline constexpr";
+    return "static constexpr";
 }
 
 
@@ -190,13 +200,12 @@ pub fn main() !void
     {
         return;
     }
-
+    const var_modifier = variable_modifier(settings.c_style, settings.inline_vars);
 
     var custom_header_content = try string.init_with_contents(allocator, "");
     defer custom_header_content.deinit();
 
-    var file_data: [] u8 = "";
-    defer if (!std.mem.eql(u8, file_data, "")) allocator.free(file_data);
+    var file_data: [] u8 = undefined;
     if (settings.uncompressed_data)
     {
         var width: c_int = 0;
@@ -209,9 +218,9 @@ pub fn main() !void
             return;
         }
         file_data = s[0..@intCast(width*height*channel)];
-        try int_to_string(&custom_header_content, width,   "static const unsigned char sg_File_as_code_width   = ", ";\n");
-        try int_to_string(&custom_header_content, height,  "static const unsigned char sg_File_as_code_height  = ", ";\n");
-        try int_to_string(&custom_header_content, channel, "static const unsigned char sg_File_as_code_channel = ", ";\n\n");    }
+        try int_to_string(&custom_header_content, width,   var_modifier, " unsigned char sg_File_as_code_width   = ", ";\n");
+        try int_to_string(&custom_header_content, height,  var_modifier, " unsigned char sg_File_as_code_height  = ", ";\n");
+        try int_to_string(&custom_header_content, channel, var_modifier, " unsigned char sg_File_as_code_channel = ", ";\n\n");    }
     else
     {
         var in_file = std.fs.cwd().openFile(settings.input_file, .{}) catch |err|
@@ -228,7 +237,8 @@ pub fn main() !void
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
     try write_file_header(custom_header_content, buf.writer());
-    try write_bytes_format(buf.writer(), file_data);
+    try write_bytes_format(var_modifier, buf.writer(), file_data);
     try buf.flush();
     defer out_writer.close();
+    defer allocator.free(file_data);
 }
