@@ -153,7 +153,7 @@ pub fn parse_args(args: [][] u8) !Settings
         }
 
         // we need a copy, otherwise we would not be able to give case sensitive error messages && read input files case sensitive
-        var str = string.init_with_contents(std.heap.c_allocator, arg) catch { settings.valid = false; return settings; };
+        var str = string.init_with_contents(std.heap.page_allocator, arg) catch { settings.valid = false; return settings; };
         defer str.deinit();
         str.toLowercase();
 
