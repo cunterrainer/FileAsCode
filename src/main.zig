@@ -375,7 +375,7 @@ pub fn uncompress_data(allocator: std.mem.Allocator, path: [] const u8, header_c
 }
 
 
-pub fn main() !void
+pub fn app() !void
 {
     const allocator = std.heap.page_allocator;
     const args = try std.process.argsAlloc(allocator);
@@ -439,4 +439,12 @@ pub fn main() !void
     try buf.flush();
     defer out_writer.close();
     defer allocator.free(file_data);
+}
+
+
+pub fn main() !void
+{
+    app() catch |e| {
+        try std.io.getStdErr().writer().print("Unhandled exception occured: {}", .{ e });
+    };
 }
