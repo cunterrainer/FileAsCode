@@ -28,7 +28,7 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
 }
 
 
-pub fn write_file_header(content: string, hash_value: [] const u8, writer: anytype) !void
+pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: [] const u8, writer: anytype) !void
 {
     //////////////////////////////////////////////////////////////////////////////////
     //                                                                              //
@@ -46,7 +46,7 @@ pub fn write_file_header(content: string, hash_value: [] const u8, writer: anyty
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //\n");
     _ = try writer.write("//                                                                              //\n");
-    _ = try writer.print("// hash: {s}       //\n", .{hash_value});
+    _ = try writer.print("// {s}: {s}       //\n", .{ hash_name, hash_value });
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("//////////////////////////////////////////////////////////////////////////////////\n\n");
     _ = try writer.write(content.buffer.?[0..content.size]);
@@ -272,53 +272,64 @@ pub fn memset(buffer: [] u8, size: usize, elem: u8) []u8
 }
 
 
-pub fn hash(buffer: [] const u8, out_buffer: [] u8, hash_function: HashFunctions) usize
+pub fn hash(buffer: [] const u8, out_buffer: [] u8, hash_function: HashFunctions, hash_name: *string) !usize
 {
     var length: usize = 0;
     var out_buffer_int: [64] u8 = undefined;
     switch(hash_function)
     {
         .MD5 => {
+            try hash_name.concat("md5");
             length = std.crypto.hash.Md5.digest_length;
             std.crypto.hash.Md5.hash(buffer, out_buffer_int[0..std.crypto.hash.Md5.digest_length], .{});
         },
         .Sha1 => {
+            try hash_name.concat("sha1");
             length = std.crypto.hash.Sha1.digest_length;
             std.crypto.hash.Sha1.hash(buffer, out_buffer_int[0..std.crypto.hash.Sha1.digest_length], .{});
         },
         .Sha224 => {
+            try hash_name.concat("sha224");
             length = std.crypto.hash.sha2.Sha224.digest_length;
             std.crypto.hash.sha2.Sha224.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha224.digest_length], .{});
         },
         .Sha256 => {
+            try hash_name.concat("sha256");
             length = std.crypto.hash.sha2.Sha256.digest_length;
             std.crypto.hash.sha2.Sha256.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha256.digest_length], .{});
         },
         .Sha384 => {
+            try hash_name.concat("sha384");
             length = std.crypto.hash.sha2.Sha384.digest_length;
             std.crypto.hash.sha2.Sha384.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha384.digest_length], .{});
         },
         .Sha512 => {
+            try hash_name.concat("sha512");
             length = std.crypto.hash.sha2.Sha512.digest_length;
             std.crypto.hash.sha2.Sha512.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha512.digest_length], .{});
         },
         .Sha512_256 => {
+            try hash_name.concat("sha512_256");
             length = std.crypto.hash.sha2.Sha512256.digest_length;
             std.crypto.hash.sha2.Sha512256.hash(buffer, out_buffer_int[0..std.crypto.hash.sha2.Sha512256.digest_length], .{});
         },
         .Sha3_224 => {
+            try hash_name.concat("sha3_224");
             length = std.crypto.hash.sha3.Sha3_224.digest_length;
             std.crypto.hash.sha3.Sha3_224.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_224.digest_length], .{});
         },
         .Sha3_256 => {
+            try hash_name.concat("sha3_256");
             length = std.crypto.hash.sha3.Sha3_256.digest_length;
             std.crypto.hash.sha3.Sha3_256.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_256.digest_length], .{});
         },
         .Sha3_384 => {
+            try hash_name.concat("sha3_384");
             length = std.crypto.hash.sha3.Sha3_384.digest_length;
             std.crypto.hash.sha3.Sha3_384.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_384.digest_length], .{});
         },
         .Sha3_512 => {
+            try hash_name.concat("sha3_512");
             length = std.crypto.hash.sha3.Sha3_512.digest_length;
             std.crypto.hash.sha3.Sha3_512.hash(buffer, out_buffer_int[0..std.crypto.hash.sha3.Sha3_512.digest_length], .{});
         }
@@ -383,21 +394,25 @@ pub fn main() !void
         in_file.close();
     }
 
+    var hash_name: string = string.init(allocator);
+    defer hash_name.deinit();
     var hash_out_buffer: [128] u8 = undefined;
-    const hash_length = hash(file_data, &hash_out_buffer, settings.hash_function);
+    const hash_length = try hash(file_data, &hash_out_buffer, settings.hash_function, &hash_name);
     if (settings.hash)
     {
         try custom_header_content.concat(var_modifier);
         if (!settings.c_style)
             try custom_header_content.concat(" const "); // otherwise e.g. static constexpr char* a = "Hello world"; (forbidden not const char*)
-        try custom_header_content.concat(" char* sg_File_as_code_hash = \"");
+        try custom_header_content.concat(" char* sg_File_as_code_");
+        try custom_header_content.concat(hash_name.str());
+        try custom_header_content.concat(" = \"");
         try custom_header_content.concat(hash_out_buffer[0..hash_length]);
         try custom_header_content.concat("\";\n\n");
     }
 
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
-    try write_file_header(custom_header_content, hash_out_buffer[0..hash_length], buf.writer());
+    try write_file_header(custom_header_content, hash_name.str(), hash_out_buffer[0..hash_length], buf.writer());
     try write_bytes_format(var_modifier, buf.writer(), file_data);
     try buf.flush();
     defer out_writer.close();
