@@ -106,7 +106,11 @@ pub fn parse_args(args: [][] u8) Settings
             continue;
         }
 
-        if ((std.mem.eql(u8, arg, "-i") or std.mem.eql(u8, arg, "--input")))
+        var str = string.init_with_contents(std.heap.c_allocator, arg) catch { settings.valid = false; return settings; };
+        defer str.deinit();
+        str.toLowercase();
+
+        if ((str.cmp("-i") or str.cmp("--input")))
         {
             if (i + 1 != args.len)
             {
@@ -120,7 +124,7 @@ pub fn parse_args(args: [][] u8) Settings
                 return settings;
             }
         }
-        else if ((std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")))
+        else if ((str.cmp("-o") or str.cmp("--output")))
         {
             if (i + 1 != args.len)
             {
@@ -134,25 +138,25 @@ pub fn parse_args(args: [][] u8) Settings
                 return settings;
             }
         }
-        else if (std.mem.eql(u8, arg, "-c") or std.mem.eql(u8, arg, "--c-style"))
+        else if (str.cmp("-c") or str.cmp("--c-style"))
         {
             settings.c_style = true;
         }
-        else if (std.mem.eql(u8, arg, "-c++") or std.mem.eql(u8, arg, "--cplusplus"))
+        else if (str.cmp("-c++") or str.cmp("--cplusplus"))
         {
             settings.c_style = false;
         }
-        else if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help"))
+        else if (str.cmp("-h") or str.cmp("--help"))
         {
             settings.valid = false;
             print_help(args[0]);
             return settings;
         }
-        else if (std.mem.eql(u8, arg, "-u") or std.mem.eql(u8, arg, "--uncompressed"))
+        else if (str.cmp("-u") or str.cmp("--uncompressed"))
         {
             settings.uncompressed_data = true;
         }
-        else if (std.mem.eql(u8, arg, "-l") or std.mem.eql(u8, arg, "--inline"))
+        else if (str.cmp("-l") or str.cmp("--inline"))
         {
             settings.inline_vars = true;
         }
