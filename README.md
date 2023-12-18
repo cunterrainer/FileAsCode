@@ -25,3 +25,32 @@ cd FileAsCode
 ```
 zig build -Doptimize=ReleaseSafe
 ```
+
+# Troubleshooting
+
+If you encounter any issues while building or using FileAsCode with Zig, here are some troubleshooting steps you can follow:
+
+## Zig Compiler Issues
+
+1. **Zig API Changes:**
+    - If the program can't compile due to breaking API changes in Zig, make sure you are using a compatible version of the Zig compiler. FileAsCode was developed using version `0.12.0-dev.1830+779b8e259` Zig, and newer versions might introduce breaking changes. Check the [Zig GitHub repository](https://github.com/ziglang/zig) for information on the latest stable release or the [Zig download page](https://ziglang.org/download/) to download a different version
+
+2. **Missing Zig Compiler:**
+    - Ensure that you have Zig installed on your system. You can download Zig from the [official Zig website](https://ziglang.org/download/).
+
+3. **Platform Compatibility:**
+    - Verify that your platform is supported by Zig. Some platforms might not have pre-built Zig binaries available. Refer to the Zig documentation for information on supported platforms.
+
+## Switching to C++ Version
+
+If you encounter persistent issues with the Zig version or your platform lacks Zig support, you can try the C++ version available in the `cpp` branch. The C++ version has a similar set of features, albeit with slight differences. Follow these steps to switch to the C++ version:
+
+1. **Switch to the `cpp` Branch:**
+    - Execute the following commands to switch to the `cpp` branch:
+
+     ```bash
+     git checkout cpp
+     ```
+
+2. **Build the C++ Version:**
+    - Follow the instructions from the [cpp readme](https://github.com/pyvyx/FileAsCode/tree/cpp).
