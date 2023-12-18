@@ -30,25 +30,19 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
 
 pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: [] const u8, writer: anytype) !void
 {
-    //////////////////////////////////////////////////////////////////////////////////
-    //                                                                              //
-    // FileAsCode exporter                                                          //
-    //                                                                              //
-    // more infos and bug-reports: github.com/pyvyx/FileAsCode                      //
-    //                                                                              //
-    //////////////////////////////////////////////////////////////////////////////////
+    // /*
+    //      FileAsCode exporter
+    //
+    //      more infos and bug-reports: https://github.com/pyvyx/FileAsCode
+    //
+    //      sha256: b3f7b214e1b1966d723513b309ff9eb10d4a31f7321b275005c6b52e
+    // */
 
     _ = try writer.write("#ifndef FILE_AS_CODE_H\n");
     _ = try writer.write("#define FILE_AS_CODE_H\n");
-    _ = try writer.write("//////////////////////////////////////////////////////////////////////////////////\n");
-    _ = try writer.write("//                                                                              //\n");
-    _ = try writer.write("// FileAsCode exporter                                                          //\n");
-    _ = try writer.write("//                                                                              //\n");
-    _ = try writer.write("// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //\n");
-    _ = try writer.write("//                                                                              //\n");
-    _ = try writer.print("// {s}: {s}       //\n", .{ hash_name, hash_value });
-    _ = try writer.write("//                                                                              //\n");
-    _ = try writer.write("//////////////////////////////////////////////////////////////////////////////////\n\n");
+    _ = try writer.write("/*\n\tFileAsCode exporter\n\n");
+    _ = try writer.write("\tmore infos and bug-reports: https://github.com/pyvyx/FileAsCode\n\n");
+    _ = try writer.print("\t{s}: {s}\n\n*/\n\n", .{ hash_name, hash_value });
     _ = try writer.write(content.buffer.?[0..content.size]);
 }
 
