@@ -58,6 +58,7 @@ const Settings = struct {
     c_style: bool = true,
     hash_variable: bool = false,
     hash_only: bool = false,
+    hash_text: bool = false,
     hash_function: HashFunctions = HashFunctions.Sha256,
     inline_vars: bool = false,
     uncompressed_data: bool = false
@@ -88,7 +89,7 @@ pub fn print_help(path: [] const u8) void
     print("        -l   | --inline          Inline the variables (starting from C++17)\n", .{});
     print("        --no-hash                Don't include a hash in top comment (e.g. if file is very large)\n", .{});
     print("        --hash-only [fn]         Just hash the file and print the value\n", .{});
-    print("        --hash-only-text [fn]    Just hash the file and print the value\n", .{});
+    print("        --hash-text [fn]         Treat the file path from '-i' as text and hash the text\n", .{});
     print("        --hash [fn]              Include the hash of the file as variable (Default Sha256)\n", .{});
     print("                                 Supported functions are: md5, sha1,\n", .{});
     print("                                 sha224, sha256, sha384, sha512, sha512-256,\n", .{});
@@ -215,7 +216,7 @@ pub fn parse_args(args: [][] u8) !Settings
             settings.hash_variable = false;
             settings.hash_function = HashFunctions.None;
         }
-        else if (str.cmp("--hash") or str.cmp("--hash-only"))
+        else if (str.cmp("--hash") or str.cmp("--hash-only") or str.cmp("--hash-text"))
         {
             if (i + 1 == args.len)
             {
@@ -234,12 +235,20 @@ pub fn parse_args(args: [][] u8) !Settings
                 if (str.cmp("--hash"))
                 {
                     settings.hash_only = false;
+                    settings.hash_text = false;
                     settings.hash_variable = true;
                 }
-                else
+                else if (str.cmp("--hash-only"))
+                {
+                    settings.hash_variable = false;
+                    settings.hash_text = false;
+                    settings.hash_only = true;
+                }
+                else // hash-text
                 {
                     settings.hash_variable = false;
                     settings.hash_only = true;
+                    settings.hash_text = true;
                 }
             }
             else
@@ -406,8 +415,12 @@ pub fn app() !void
     var custom_header_content = try string.init_with_contents(allocator, "");
     defer custom_header_content.deinit();
 
-    var file_data: [] u8 = undefined;
-    if (!settings.uncompressed_data)
+    var file_data: [] const u8 = undefined;
+    if (settings.hash_text)
+    {
+        file_data = settings.input_file;
+    }
+    else if (!settings.uncompressed_data)
     {
         var in_file = std.fs.cwd().openFile(settings.input_file, .{}) catch |err|
         {
@@ -416,7 +429,6 @@ pub fn app() !void
         };
 
         file_data = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
-        _ = try in_file.readAll(file_data);
         in_file.close();
     }
     else
