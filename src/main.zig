@@ -220,6 +220,7 @@ pub fn parse_args(args: [][] u8) !Settings
                 return settings;
             }
 
+            _ = std.ascii.lowerString(args[i+1], args[i+1]);
             const hash_function = hash_functions_map.get(args[i+1]);
             if (hash_function) |v|
             {
