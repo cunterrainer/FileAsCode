@@ -187,8 +187,12 @@ pub fn main() !void
         return;
     }
 
-    var char_buffer: [] u8 = "";
-    defer if (char_buffer.len > 0) allocator.free(char_buffer);
+    var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
+    var buf = std.io.bufferedWriter(out_writer.writer());
+    defer out_writer.close();
+
+    var file_data: [] u8 = "";
+    defer if (file_data.len > 0) allocator.free(file_data);
     if (settings.uncompressed_data)
     {
         var img: Image = .{};
@@ -198,29 +202,22 @@ pub fn main() !void
             print_err("Failed to open file '{s}': {s}", .{ settings.input_file, stb.stbi_failure_reason() });
             return;
         }
-        char_buffer = s[0..@intCast(img.width*img.height*img.channel)];
+        file_data = s[0..@intCast(img.width*img.height*img.channel)];
     }
     else
     {
-        var in_file: std.fs.File = undefined;
-        if (std.fs.cwd().openFile(settings.input_file, .{})) |file|
-        {
-            in_file = file;
-        }
-        else |err|
+        var in_file = std.fs.cwd().openFile(settings.input_file, .{}) catch |err|
         {
             print_err("Failed to open file '{s}': {}\n", .{settings.input_file, err});
             return;
-        }
-        defer in_file.close();
-        char_buffer = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
-        _ = try in_file.readAll(char_buffer);
+        };
+
+        file_data = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
+        _ = try in_file.readAll(file_data);
+        in_file.close();
     }
 
-    var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
-    var buf = std.io.bufferedWriter(out_writer.writer());
     try write_file_header(buf.writer());
-    try write_bytes_format(buf.writer(), char_buffer);
+    try write_bytes_format(buf.writer(), file_data);
     try buf.flush();
-    out_writer.close();
 }
