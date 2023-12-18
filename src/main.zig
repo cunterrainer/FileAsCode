@@ -1,9 +1,10 @@
 const std = @import("std");
+const string = @import("string.zig").String;
 const stb = @cImport(@cInclude("stb_image.c"));
 
 pub fn write_bytes_format(writer: anytype, buffer: []const u8) !void
 {
-    _ = try writer.write("{\n\t");
+    _ = try writer.write("static const unsigned char sg_File_as_code[] =\n{\n\t");
     
     var processed: usize = 0;
     for (buffer) |c|
@@ -27,7 +28,7 @@ pub fn write_bytes_format(writer: anytype, buffer: []const u8) !void
 }
 
 
-pub fn write_file_header(writer: anytype) !void
+pub fn write_file_header(content: string, writer: anytype) !void
 {
     //////////////////////////////////////////////////////////////////////////////////
     //                                                                              //
@@ -46,7 +47,7 @@ pub fn write_file_header(writer: anytype) !void
     _ = try writer.write("// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //\n");
     _ = try writer.write("//                                                                              //\n");
     _ = try writer.write("//////////////////////////////////////////////////////////////////////////////////\n\n");
-    _ = try writer.write("static const unsigned char sg_File_as_code[] =\n");
+    _ = try writer.write(content.buffer.?[0..content.size]);
 }
 
 
@@ -175,6 +176,17 @@ const Image = struct {
 };
 
 
+pub fn int_to_string(str: *string, num: c_int, comptime buff: [] const u8, comptime buff2: [] const u8) !void
+{
+
+    var num_buffer: [20] u8 = undefined; // 20 should never be reached
+    const char_size = try std.fmt.bufPrint(&num_buffer, "{d}", .{num});
+    try str.concat(buff);
+    try str.concat(num_buffer[0..char_size.len]);
+    try str.concat(buff2);
+}
+
+
 pub fn main() !void
 {
     const allocator = std.heap.c_allocator; // because of stb compatibility (stb calls malloc/free under the hood)
@@ -187,12 +199,12 @@ pub fn main() !void
         return;
     }
 
-    var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
-    var buf = std.io.bufferedWriter(out_writer.writer());
-    defer out_writer.close();
+
+    var custom_header_content = try string.init_with_contents(allocator, "");
+    defer custom_header_content.deinit();
 
     var file_data: [] u8 = "";
-    defer if (file_data.len > 0) allocator.free(file_data);
+    defer if (!std.mem.eql(u8, file_data, "")) allocator.free(file_data);
     if (settings.uncompressed_data)
     {
         var img: Image = .{};
@@ -203,7 +215,9 @@ pub fn main() !void
             return;
         }
         file_data = s[0..@intCast(img.width*img.height*img.channel)];
-    }
+        try int_to_string(&custom_header_content, img.width,   "static const unsigned char sg_File_as_code_width   = ", ";\n");
+        try int_to_string(&custom_header_content, img.height,  "static const unsigned char sg_File_as_code_height  = ", ";\n");
+        try int_to_string(&custom_header_content, img.channel, "static const unsigned char sg_File_as_code_channel = ", ";\n\n");    }
     else
     {
         var in_file = std.fs.cwd().openFile(settings.input_file, .{}) catch |err|
@@ -217,7 +231,10 @@ pub fn main() !void
         in_file.close();
     }
 
-    try write_file_header(buf.writer());
+    var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
+    var buf = std.io.bufferedWriter(out_writer.writer());
+    try write_file_header(custom_header_content, buf.writer());
     try write_bytes_format(buf.writer(), file_data);
     try buf.flush();
+    defer out_writer.close();
 }
