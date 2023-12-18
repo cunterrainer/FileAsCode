@@ -355,6 +355,28 @@ pub fn hash(buffer: [] const u8, out_buffer: [] u8, hash_function: HashFunctions
 }
 
 
+pub fn uncompress_data(allocator: std.mem.Allocator, path: [] const u8, header_content: *string, var_modifier: [] const u8) !?[] u8
+{
+    var width: c_int = 0;
+    var height: c_int = 0;
+    var channel: c_int = 0;
+    const s = stb.stbi_load(path.ptr, &width, &height, &channel,  0);
+    if (s == null)
+    {
+        print_err("Failed to open file '{s}': {s}", .{ path, stb.stbi_failure_reason() });
+        return null;
+    }
+    // We have to copy the image data, otherwise we would be freeing file_data of type [] u8 instead of [*c] u8 which can cause segfaults
+    const data = try allocator.alloc(u8, @intCast(width*height*channel));
+    std.mem.copyForwards(u8, data, s[0..@intCast(width*height*channel)]);
+    stb.stbi_image_free(s);
+    try int_to_string(header_content, width,   var_modifier, " unsigned char sg_File_as_code_width   = ", ";\n");
+    try int_to_string(header_content, height,  var_modifier, " unsigned char sg_File_as_code_height  = ", ";\n");
+    try int_to_string(header_content, channel, var_modifier, " unsigned char sg_File_as_code_channel = ", ";\n\n");
+    return data;
+}
+
+
 pub fn main() !void
 {
     const allocator = std.heap.page_allocator;
@@ -372,25 +394,7 @@ pub fn main() !void
     defer custom_header_content.deinit();
 
     var file_data: [] u8 = undefined;
-    if (settings.uncompressed_data)
-    {
-        var width: c_int = 0;
-        var height: c_int = 0;
-        var channel: c_int = 0;
-        const s = stb.stbi_load(settings.input_file.ptr, &width, &height, &channel,  0);
-        if (s == null)
-        {
-            print_err("Failed to open file '{s}': {s}", .{ settings.input_file, stb.stbi_failure_reason() });
-            return;
-        }
-        // We have to copy the image data, otherwise we would be freeing file_data of type [] u8 instead of [*c] u8 which can cause segfaults
-        file_data = try allocator.alloc(u8, @intCast(width*height*channel));
-        std.mem.copyForwards(u8, file_data, s[0..@intCast(width*height*channel)]);
-        stb.stbi_image_free(s);
-        try int_to_string(&custom_header_content, width,   var_modifier, " unsigned char sg_File_as_code_width   = ", ";\n");
-        try int_to_string(&custom_header_content, height,  var_modifier, " unsigned char sg_File_as_code_height  = ", ";\n");
-        try int_to_string(&custom_header_content, channel, var_modifier, " unsigned char sg_File_as_code_channel = ", ";\n\n");    }
-    else
+    if (!settings.uncompressed_data)
     {
         var in_file = std.fs.cwd().openFile(settings.input_file, .{}) catch |err|
         {
@@ -401,6 +405,12 @@ pub fn main() !void
         file_data = try in_file.readToEndAlloc(allocator, (try in_file.stat()).size);
         _ = try in_file.readAll(file_data);
         in_file.close();
+    }
+    else
+    {
+        const data_opt = try uncompress_data(allocator, settings.input_file, &custom_header_content, var_modifier);
+        if (data_opt) |v| { file_data = v; }
+        else return;
     }
 
     var hash_name: string = string.init(allocator);
