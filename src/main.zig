@@ -2,9 +2,16 @@ const std = @import("std");
 const string = @import("string.zig").String;
 const stb = @cImport(@cInclude("stb_image.c"));
 
-pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []const u8) !void
+pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []const u8, std_array: bool) !void
 {
-    _ = try writer.print("{s} unsigned char sg_File_as_code[] =\n{{\n\t", .{var_modifier});
+    if (std_array)
+    {
+        _ = try writer.print("{s} std::array<unsigned char, {d}> sg_File_as_code =\n{{\n\t", .{var_modifier, buffer.len});
+    }
+    else
+    {
+        _ = try writer.print("{s} unsigned char sg_File_as_code[] =\n{{\n\t", .{var_modifier});
+    }
     
     var processed: usize = 0;
     for (buffer) |c|
@@ -23,12 +30,16 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
             _ = try writer.print("0x{X:0>2}, ", .{c});
         }
     }
-    _ = try writer.print("{s} unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", .{var_modifier});
+
+    if (!std_array)
+    {
+        _ = try writer.print("{s} unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", .{var_modifier});
+    }
     _ = try writer.write("#endif // FILE_AS_CODE_H");
 }
 
 
-pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: [] const u8, writer: anytype) !void
+pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: [] const u8, writer: anytype, std_array: bool) !void
 {
     // /*
     //      FileAsCode exporter
@@ -40,6 +51,9 @@ pub fn write_file_header(content: string, hash_name: [] const u8, hash_value: []
 
     _ = try writer.write("#ifndef FILE_AS_CODE_H\n");
     _ = try writer.write("#define FILE_AS_CODE_H\n");
+    if (std_array)
+        _ = try writer.write("#include <array>\n");
+
     _ = try writer.write("/*\n\tFileAsCode exporter\n\n");
     _ = try writer.write("\tmore infos and bug-reports: https://github.com/pyvyx/FileAsCode\n");
     if (hash_name.len > 0)
@@ -59,6 +73,7 @@ const Settings = struct {
     hash_variable: bool = false,
     hash_only: bool = false,
     hash_text: bool = false,
+    std_array: bool = false,
     hash_function: HashFunctions = HashFunctions.Sha256,
     inline_vars: bool = false,
     uncompressed_data: bool = false
@@ -82,6 +97,7 @@ pub fn print_help(path: [] const u8) void
     print("Usage: {s} [options]\nOptions:\n", .{path});
     print("        -i   | --input  [FILE]   Input file path\n", .{});
     print("        -o   | --output [FILE]   Output file path\n", .{});
+    print("        -s   | --std             Use a std::array instead of a C-Style array\n", .{});
     print("        -c   | --c-style         Use C-Style variable qualifiers (const)\n", .{});
     print("        -c++ | --cplusplus       Use C-Style variable qualifiers (constexpr)\n", .{});
     print("        -h   | --help            Show this info message\n", .{});
@@ -210,6 +226,10 @@ pub fn parse_args(args: [][] u8) !Settings
         else if (str.cmp("-l") or str.cmp("--inline"))
         {
             settings.inline_vars = true;
+        }
+        else if (str.cmp("-s") or str.cmp("--std"))
+        {
+            settings.std_array = true;
         }
         else if (str.cmp("--no-hash") or str.cmp("-nh"))
         {
@@ -466,8 +486,8 @@ pub fn app() !void
 
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
-    try write_file_header(custom_header_content, hash_name.str(), hash_out_buffer[0..hash_length], buf.writer());
-    try write_bytes_format(var_modifier, buf.writer(), file_data);
+    try write_file_header(custom_header_content, hash_name.str(), hash_out_buffer[0..hash_length], buf.writer(), settings.std_array);
+    try write_bytes_format(var_modifier, buf.writer(), file_data, settings.std_array);
     try buf.flush();
     defer out_writer.close();
     defer allocator.free(file_data);
