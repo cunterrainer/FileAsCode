@@ -2,7 +2,31 @@ const std = @import("std");
 const string = @import("string.zig").String;
 const stb = @cImport(@cInclude("stb_image.c"));
 
-pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []const u8, std_array: bool) !void
+pub fn write_byte_as_char(writer: anytype, c: u8) !void
+{
+    switch(c)
+    {
+        '\n' => _ = try writer.write("'\\n'"),
+        '\r' => _ = try writer.write("'\\r'"),
+        '\t' => _ = try writer.write("'\\t'"),
+        '\\' => _ = try writer.write("'\\\\'"),
+        '\'' => _ = try writer.write("'\\''"),
+        '\"' => _ = try writer.write("'\\\"'"),
+          0  => _ = try writer.write("'\\0'"),
+        else => {
+            if (c >= 127 or c <= 31) // non printable
+            {
+                _ = try writer.print("0x{X:0>2}", .{c});
+            }
+            else
+            {
+                _ = try writer.print(" '{c}'", .{c});
+            }
+        }
+    }
+}
+
+pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []const u8, std_array: bool, write_char: bool) !void
 {
     if (std_array)
     {
@@ -19,15 +43,39 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
         processed += 1;
         if (processed == buffer.len)
         {
-            _ = try writer.print("0x{X:0>2}\n}};\n", .{c});
+            if (write_char)
+            {
+                try write_byte_as_char(writer, c);
+                _ = try writer.write("\n};\n");
+            }
+            else
+            {
+                _ = try writer.print("0x{X:0>2}\n}};\n", .{c});
+            }
         }
         else if (processed % 16 == 0)
         {
-            _ = try writer.print("0x{X:0>2},\n\t", .{c});
+            if (write_char)
+            {
+                try write_byte_as_char(writer, c);
+                _ = try writer.write(",\n\t");
+            }
+            else
+            {
+                _ = try writer.print("0x{X:0>2},\n\t", .{c});
+            }
         }
         else
         {
-            _ = try writer.print("0x{X:0>2}, ", .{c});
+            if (write_char)
+            {
+                try write_byte_as_char(writer, c);
+                _ = try writer.write(", ");
+            }
+            else
+            {
+                _ = try writer.print("0x{X:0>2}, ", .{c});
+            }
         }
     }
 
@@ -74,6 +122,7 @@ const Settings = struct {
     hash_only: bool = false,
     hash_text: bool = false,
     std_array: bool = false,
+    write_char: bool = false,
     hash_function: HashFunctions = HashFunctions.Sha256,
     inline_vars: bool = false,
     uncompressed_data: bool = false
@@ -98,6 +147,7 @@ pub fn print_help(path: [] const u8) void
     print("        -i   | --input  [FILE]   Input file path\n", .{});
     print("        -o   | --output [FILE]   Output file path\n", .{});
     print("        -s   | --std             Use a std::array instead of a C-Style array\n", .{});
+    print("        -r   | --char            Write chars to array instead of their value as hex (if printable)\n", .{});
     print("        -c   | --c-style         Use C-Style variable qualifiers (const)\n", .{});
     print("        -c++ | --cplusplus       Use C-Style variable qualifiers (constexpr)\n", .{});
     print("        -h   | --help            Show this info message\n", .{});
@@ -208,6 +258,10 @@ pub fn parse_args(args: [][] u8) !Settings
         else if (str.cmp("-c") or str.cmp("--c-style"))
         {
             settings.c_style = true;
+        }
+        else if (str.cmp("-r") or str.cmp("--char"))
+        {
+            settings.write_char = true;
         }
         else if (str.cmp("-c++") or str.cmp("--cplusplus"))
         {
@@ -487,7 +541,7 @@ pub fn app() !void
     var out_writer: std.fs.File = if (settings.output_file.len == 0) std.io.getStdOut() else std.fs.cwd().createFile(settings.output_file, .{}) catch std.io.getStdOut();
     var buf = std.io.bufferedWriter(out_writer.writer());
     try write_file_header(custom_header_content, hash_name.str(), hash_out_buffer[0..hash_length], buf.writer(), settings.std_array);
-    try write_bytes_format(var_modifier, buf.writer(), file_data, settings.std_array);
+    try write_bytes_format(var_modifier, buf.writer(), file_data, settings.std_array, settings.write_char);
     try buf.flush();
     defer out_writer.close();
     defer allocator.free(file_data);
