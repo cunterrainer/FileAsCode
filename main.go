@@ -36,10 +36,6 @@ func parseArgs() (fac.Settings, error) {
         Uncompress: false,
     }
 
-    if argsLen == 1 {
-        return settings, fmt.Errorf("Usage: %s [options]\nTry '--help' for additional information", args[0])
-    }
-
     skip := false
     for i, arg := range args[1:] {
         if skip {
@@ -87,6 +83,10 @@ func parseArgs() (fac.Settings, error) {
 
         }
 	}
+
+    if len(settings.InputPath) == 0 {
+        return settings, fmt.Errorf("Usage: %s [options]\nTry '--help' for additional information", args[0])
+    }
 
     return settings, nil
 }
