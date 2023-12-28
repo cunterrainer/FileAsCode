@@ -2,6 +2,18 @@ package fac
 
 import "fmt"
 
-func Test() {
-	fmt.Println("Hello, world. Test");
+
+type Settings struct {
+    InputPath  string
+    OutputPath string
+    CStyle     bool
+    StdArray   bool
+    WriteChars bool
+    InlineVars bool
+    Uncompress bool
+}
+
+
+func Test(settings Settings) {
+	fmt.Printf("Input: %s\n", settings.InputPath);
 }
