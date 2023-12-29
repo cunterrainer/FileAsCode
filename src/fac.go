@@ -19,9 +19,12 @@ type Settings struct {
 }
 
 
-func writeHeader(w io.Writer) {
+func writeHeader(w io.Writer, stdArray bool) {
 	fmt.Fprintln(w, "#ifndef FILE_AS_CODE_H")
 	fmt.Fprintln(w, "#define FILE_AS_CODE_H")
+	if stdArray {
+		fmt.Fprintln(w, "#include <array>")
+	}
 	fmt.Fprintln(w, "//////////////////////////////////////////////////////////////////////////////////")
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "// FileAsCode exporter                                                          //")
@@ -107,6 +110,19 @@ func getConstVariant(cstyle bool, inline bool) string {
 }
 
 
+func getOutputFile(outputPath string) *bufio.Writer {
+	if outputPath == "" {
+		return bufio.NewWriter(os.Stdout)
+	}
+
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return bufio.NewWriter(os.Stdout)
+	}
+	return bufio.NewWriter(file)
+}
+
+
 func Fac(settings Settings) {
 	content, err := os.ReadFile(settings.InputPath)
 	if err != nil {
@@ -114,10 +130,10 @@ func Fac(settings Settings) {
 		return
 	}
 	
-	bufferedWriter := bufio.NewWriter(os.Stdout)
+	bufferedWriter := getOutputFile(settings.OutputPath)
 	defer bufferedWriter.Flush()
 
-	writeHeader(bufferedWriter)
+	writeHeader(bufferedWriter, settings.StdArray)
 	writeArray(bufferedWriter, content, getConstVariant(settings.CStyle, settings.InlineVars), settings.WriteChars, settings.StdArray)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
 }
