@@ -26,6 +26,7 @@ type Settings struct {
 	InlineVars bool
 	Uncompress bool
 	Compression int
+	CompressLvl int
 }
 
 
@@ -213,7 +214,7 @@ const (
 )
 
 
-func compress(input []byte, algorithm int) ([]byte, error) {
+func compress(input []byte, algorithm int, compressionLevel int) ([]byte, error) {
 	var compressed bytes.Buffer
 	var writer interface {
 		Write(p []byte) (n int, err error)
@@ -222,9 +223,9 @@ func compress(input []byte, algorithm int) ([]byte, error) {
 
 	switch algorithm {
 	case CompressionGzip:
-		writer = gzip.NewWriter(&compressed)
+		writer, _ = gzip.NewWriterLevel(&compressed, compressionLevel)
 	case CompressionZlib:
-		writer = zlib.NewWriter(&compressed)
+		writer, _ = zlib.NewWriterLevel(&compressed, compressionLevel)
 	}
 
 	_, err := writer.Write(input)
@@ -261,7 +262,7 @@ func Fac(settings Settings) {
 
 
 	if settings.Compression != CompressionNone {
-		compressedContent, err := compress(content, settings.Compression)
+		compressedContent, err := compress(content, settings.Compression, settings.CompressLvl)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return

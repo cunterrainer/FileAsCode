@@ -5,6 +5,7 @@ import (
     "fmt"
     "errors"
     "strings"
+    "compress/flate"
 
     fac "github.com/pyvyx/FileAsCode/src"
 )
@@ -12,16 +13,19 @@ import (
 
 func printHelp(path string) {
     fmt.Printf("Usage: %s [options]\nOptions:\n", path)
-    fmt.Println("        -i   | --input  [FILE]   Input file path")
-    fmt.Println("        -o   | --output [FILE]   Output file path")
-    fmt.Println("        -s   | --std             Use a std::array instead of a C-Style array")
-    fmt.Println("        -c   | --char            Write chars to array instead of their value as hex (if printable)")
-    fmt.Println("        -c++ | --cplusplus       Use C-Style variable qualifiers (constexpr)")
-    fmt.Println("        -h   | --help            Show this info message")
-    fmt.Println("        -u   | --uncompress      Write uncompressed data to file (jpeg, png, gif)")
-    fmt.Println("        -l   | --inline          Inline the variables (starting from C++17)")
-    fmt.Println("        -g   | --gzip            Use the gzip compression algorithm to compress data")
-    fmt.Println("        -z   | --zlib            Use the zlib compression algorithm to compress data")
+    fmt.Println("        -i   | --input  [FILE]     Input file path")
+    fmt.Println("        -o   | --output [FILE]     Output file path")
+    fmt.Println("        -s   | --std               Use a std::array instead of a C-Style array")
+    fmt.Println("        -c   | --char              Write chars to array instead of their value as hex (if printable)")
+    fmt.Println("        -c++ | --cplusplus         Use C-Style variable qualifiers (constexpr)")
+    fmt.Println("        -h   | --help              Show this info message")
+    fmt.Println("        -u   | --uncompress        Write uncompressed data to file (jpeg, png, gif)")
+    fmt.Println("        -l   | --inline            Inline the variables (starting from C++17)")
+    fmt.Println("        -g   | --gzip              Use the gzip compression algorithm to compress data")
+    fmt.Println("        -z   | --zlib              Use the zlib compression algorithm to compress data")
+    fmt.Println("        -bs  | --best-speed        Use the compression level for best speed")
+    fmt.Println("        -bc  | --best-compression  Use the compression level for best compression")
+    fmt.Println("                                   If neither '-bs' nor '-bc' is set default compression is used")
 }
 
 
@@ -37,6 +41,7 @@ func parseArgs() (fac.Settings, error) {
         InlineVars: false,
         Uncompress: false,
         Compression: fac.CompressionNone,
+        CompressLvl: flate.DefaultCompression,
     }
 
     skip := false
@@ -69,8 +74,16 @@ func parseArgs() (fac.Settings, error) {
 
         } else if argLower == "-g" || argLower == "--gzip" {
             settings.Compression = fac.CompressionGzip
+
         } else if argLower == "-z" || argLower == "--zlib" {
             settings.Compression = fac.CompressionZlib
+
+        } else if argLower == "-bs" || argLower == "--best-speed" {
+            settings.CompressLvl = flate.BestSpeed
+            
+        } else if argLower == "-bc" || argLower == "--best-compression" {
+            settings.CompressLvl = flate.BestCompression
+
         } else if argLower == "-i" || argLower == "--input" {
             if i + 2 < argsLen {
                 skip = true
