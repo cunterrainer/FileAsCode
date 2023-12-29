@@ -1,21 +1,28 @@
 package fac
 
 import (
-	"os"
 	"io"
+	"os"
 	"fmt"
 	"bufio"
+	"image"
+	"bytes"
+	"errors"
+	"image/draw"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 )
 
 
 type Settings struct {
-    InputPath  string
-    OutputPath string
-    CStyle     bool
-    StdArray   bool
-    WriteChars bool
-    InlineVars bool
-    Uncompress bool
+	InputPath  string
+	OutputPath string
+	CStyle     bool
+	StdArray   bool
+	WriteChars bool
+	InlineVars bool
+	Uncompress bool
 }
 
 
@@ -53,7 +60,7 @@ func writeByteAsChar(w io.Writer, b byte) {
 	case 0:
 		fmt.Fprint(w, "'\\0'")
 	default:
-		if (b > 31 && b < 127) { // printable
+		if b > 31 && b < 127 { // printable
 			fmt.Fprintf(w, " '%c'", b)
 		} else {
 			fmt.Fprintf(w, "0x%02X", b)
@@ -81,7 +88,7 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 			} else {
 				fmt.Fprintf(w, "0x%02X\n};\n", b)
 			}
-		} else if processed % 16 == 0 {
+		} else if processed%16 == 0 {
 			if writeChar {
 				writeByteAsChar(w, b)
 				fmt.Fprint(w, ",\n\t")
@@ -123,14 +130,96 @@ func getOutputFile(outputPath string) *bufio.Writer {
 }
 
 
-func Fac(settings Settings) {
-	content, err := os.ReadFile(settings.InputPath)
+func compressed(path string) ([]byte, error) {
+	content, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to open file '%s': %v", settings.InputPath, err)
-		return
+		return nil, fmt.Errorf("Failed to open file '%s': %v", path, err)
 	}
-	
-	bufferedWriter := getOutputFile(settings.OutputPath)
+	return content, nil
+}
+
+
+func getImageBytes(img image.Image) ([]byte, error) {
+	var buf bytes.Buffer
+
+	switch img := img.(type) {
+	case *image.RGBA:
+		_, err := buf.Write(img.Pix)
+		if err != nil {
+			return nil, errors.New("Failed to convert RGBA image to byte array")
+		}
+	case *image.NRGBA:
+		_, err := buf.Write(img.Pix)
+		if err != nil {
+			return nil, errors.New("Failed to convert NRGBA image to byte array")
+		}
+	case *image.Gray:
+		_, err := buf.Write(img.Pix)
+		if err != nil {
+			return nil, errors.New("Failed to convert Gray image to byte array")
+		}
+	case *image.Gray16:
+		_, err := buf.Write(img.Pix)
+		if err != nil {
+			return nil, errors.New("Failed to convert Gray16 image to byte array")
+		}
+	case *image.CMYK:
+		_, err := buf.Write(img.Pix)
+		if err != nil {
+			return nil, errors.New("Failed to convert CMYK image to byte array")
+		}
+	case *image.Paletted:
+		_, err := buf.Write(img.Pix)
+		if err != nil {
+			return nil, errors.New("Failed to convert Paletted image to byte array")
+		}
+	default:
+		// convert it to RGBA
+		rgba := image.NewRGBA(img.Bounds())
+		draw.Draw(rgba, rgba.Bounds(), img, image.Point{}, draw.Over)
+		if _, err := buf.Write(rgba.Pix); err != nil {
+			return nil, fmt.Errorf("Failed to convert to RGBA image, unsupported image format: %T", img)
+		}
+	}
+
+	return buf.Bytes(), nil
+}
+
+
+func uncompress(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open file '%s': %v", path, err)
+	}
+	defer file.Close()
+
+	image, _, err := image.Decode(file)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to decode image: %v", err)
+	}
+	return getImageBytes(image)
+}
+
+
+func Fac(settings Settings) {
+	var content []byte
+	if settings.Uncompress {
+		bytes, err := uncompress(settings.InputPath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		content = bytes
+	} else {
+		bytes, err := compressed(settings.InputPath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		content = bytes
+	}
+
+	bufferedWriter := getOutputFile(settings.OutputPath) // TODO close file
 	defer bufferedWriter.Flush()
 
 	writeHeader(bufferedWriter, settings.StdArray)
