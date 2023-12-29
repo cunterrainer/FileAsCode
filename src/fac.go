@@ -108,7 +108,9 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 
 
 func getConstVariant(cstyle bool, inline bool) string {
-	if cstyle {
+	if cstyle && inline {
+		return "inline const"
+	} else if cstyle {
 		return "static const"
 	} else if inline {
 		return "inline constexpr"
