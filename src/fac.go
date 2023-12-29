@@ -132,7 +132,7 @@ func getOutputFile(outputPath string) *os.File {
 }
 
 
-func compressed(path string) ([]byte, error) {
+func readFileCompressed(path string) ([]byte, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file '%s': %v", path, err)
@@ -188,7 +188,7 @@ func getImageBytes(img image.Image) ([]byte, error) {
 }
 
 
-func uncompress(path string) ([]byte, error) {
+func readFileUncompressed(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file '%s': %v", path, err)
@@ -206,14 +206,14 @@ func uncompress(path string) ([]byte, error) {
 func Fac(settings Settings) {
 	var content []byte
 	if settings.Uncompress {
-		bytes, err := uncompress(settings.InputPath)
+		bytes, err := readFileUncompressed(settings.InputPath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 		content = bytes
 	} else {
-		bytes, err := compressed(settings.InputPath)
+		bytes, err := readFileCompressed(settings.InputPath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
