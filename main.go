@@ -69,23 +69,23 @@ func parseArgs() (fac.Settings, error) {
                 skip = true
                 settings.InputPath = args[i+2]
             } else {
-                return settings, fmt.Errorf("Missing file path after '%s'\nTry '--help' for additional information", arg)
+                return settings, fmt.Errorf("Missing file path after '%s'\nTry '--help' for additional information\n", arg)
             }
         } else if argLower == "-o" || argLower == "--output" {
             if i + 2 < argsLen {
                 skip = true
                 settings.OutputPath = args[i+2]
             } else {
-                return settings, fmt.Errorf("Missing file path after '%s'\nTry '--help' for additional information", arg)
+                return settings, fmt.Errorf("Missing file path after '%s'\nTry '--help' for additional information\n", arg)
             }
         } else {
-            return settings, fmt.Errorf("Unknown option '%s'\nTry '--help' for additional information", arg)
+            return settings, fmt.Errorf("Unknown option '%s'\nTry '--help' for additional information\n", arg)
 
         }
 	}
 
     if len(settings.InputPath) == 0 {
-        return settings, fmt.Errorf("Usage: %s [options]\nTry '--help' for additional information", args[0])
+        return settings, fmt.Errorf("Usage: %s [options]\nTry '--help' for additional information\n", args[0])
     }
 
     return settings, nil
@@ -96,7 +96,7 @@ func main() {
 
     settings, err := parseArgs()
     if err != nil {
-        fmt.Fprintln(os.Stderr, err)
+        fmt.Fprint(os.Stderr, err)
         return
     }
 
