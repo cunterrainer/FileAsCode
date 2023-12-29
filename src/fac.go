@@ -206,14 +206,14 @@ func Fac(settings Settings) {
 	if settings.Uncompress {
 		bytes, err := uncompress(settings.InputPath)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 		content = bytes
 	} else {
 		bytes, err := compressed(settings.InputPath)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 		content = bytes

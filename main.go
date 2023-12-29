@@ -96,7 +96,7 @@ func main() {
 
     settings, err := parseArgs()
     if err != nil {
-        fmt.Print(err)
+        fmt.Fprintln(os.Stderr, err)
         return
     }
 
