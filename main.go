@@ -3,8 +3,8 @@ package main
 import (
     "os"
     "fmt"
-    "strings"
     "errors"
+    "strings"
 
     fac "github.com/pyvyx/FileAsCode/src"
 )
@@ -67,14 +67,14 @@ func parseArgs() (fac.Settings, error) {
         } else if argLower == "-i" || argLower == "--input" {
             if i + 2 < argsLen {
                 skip = true
-                settings.InputPath = args[i+1]
+                settings.InputPath = args[i+2]
             } else {
                 return settings, fmt.Errorf("Missing file path after '%s'\nTry '--help' for additional information", arg)
             }
         } else if argLower == "-o" || argLower == "--output" {
             if i + 2 < argsLen {
                 skip = true
-                settings.OutputPath = args[i+1]
+                settings.OutputPath = args[i+2]
             } else {
                 return settings, fmt.Errorf("Missing file path after '%s'\nTry '--help' for additional information", arg)
             }
@@ -100,5 +100,5 @@ func main() {
         return
     }
 
-    fac.Test(settings)
+    fac.Fac(settings)
 }
