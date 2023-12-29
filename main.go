@@ -18,7 +18,7 @@ func printHelp(path string) {
     fmt.Println("        -c   | --char            Write chars to array instead of their value as hex (if printable)");
     fmt.Println("        -c++ | --cplusplus       Use C-Style variable qualifiers (constexpr)");
     fmt.Println("        -h   | --help            Show this info message");
-    fmt.Println("        -u   | --uncompress      Write uncompressed data to file (jpeg, png, tga, gmp, psd, gif, hdr, pic, pnm)");
+    fmt.Println("        -u   | --uncompress      Write uncompressed data to file (jpeg, png, gif)");
     fmt.Println("        -l   | --inline          Inline the variables (starting from C++17)");
 }
 
