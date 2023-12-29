@@ -5,13 +5,15 @@ import (
 	"os"
 	"fmt"
 	"bufio"
-	"image"
 	"bytes"
+	"image"
 	"errors"
 	"image/draw"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"compress/gzip"
+	"compress/zlib"
 )
 
 
@@ -203,6 +205,40 @@ func readFileUncompressed(path string) ([]byte, error) {
 }
 
 
+const (
+	Gzip = 0
+	Zlib = 1
+)
+
+
+func compress(input []byte, algorithm int) ([]byte, error) {
+	var compressed bytes.Buffer
+	var writer interface {
+		Write(p []byte) (n int, err error)
+		Close() error
+	}
+
+	switch algorithm {
+	case Gzip:
+		writer = gzip.NewWriter(&compressed)
+	case Zlib:
+		writer = zlib.NewWriter(&compressed)
+	}
+
+	_, err := writer.Write(input)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to compress data: %v", err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to close compress writer: %v", err)
+	}
+
+	return compressed.Bytes(), nil
+}
+
+
 func Fac(settings Settings) {
 	var content []byte
 	if settings.Uncompress {
@@ -220,6 +256,17 @@ func Fac(settings Settings) {
 		}
 		content = bytes
 	}
+
+
+	if true {
+		compressedContent, err := compress(content, Gzip)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return
+		}
+		content = compressedContent
+	}
+
 
 	outputFile := getOutputFile(settings.OutputPath)
 	bufferedWriter := bufio.NewWriter(outputFile)
