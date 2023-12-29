@@ -117,16 +117,16 @@ func getConstVariant(cstyle bool, inline bool) string {
 }
 
 
-func getOutputFile(outputPath string) *bufio.Writer {
+func getOutputFile(outputPath string) *os.File {
 	if outputPath == "" {
-		return bufio.NewWriter(os.Stdout)
+		return os.Stdout
 	}
 
 	file, err := os.Create(outputPath)
 	if err != nil {
-		return bufio.NewWriter(os.Stdout)
+		return os.Stdout
 	}
-	return bufio.NewWriter(file)
+	return file
 }
 
 
@@ -219,10 +219,15 @@ func Fac(settings Settings) {
 		content = bytes
 	}
 
-	bufferedWriter := getOutputFile(settings.OutputPath) // TODO close file
-	defer bufferedWriter.Flush()
+	outputFile := getOutputFile(settings.OutputPath)
+	bufferedWriter := bufio.NewWriter(outputFile)
 
 	writeHeader(bufferedWriter, settings.StdArray)
 	writeArray(bufferedWriter, content, getConstVariant(settings.CStyle, settings.InlineVars), settings.WriteChars, settings.StdArray)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
+
+	bufferedWriter.Flush()
+	if outputFile != os.Stdout {
+		outputFile.Close()
+	}
 }
