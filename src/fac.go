@@ -25,6 +25,7 @@ type Settings struct {
 	WriteChars bool
 	InlineVars bool
 	Uncompress bool
+	Compression int
 }
 
 
@@ -206,8 +207,9 @@ func readFileUncompressed(path string) ([]byte, error) {
 
 
 const (
-	Gzip = 0
-	Zlib = 1
+	CompressionNone = iota
+	CompressionGzip
+	CompressionZlib
 )
 
 
@@ -219,9 +221,9 @@ func compress(input []byte, algorithm int) ([]byte, error) {
 	}
 
 	switch algorithm {
-	case Gzip:
+	case CompressionGzip:
 		writer = gzip.NewWriter(&compressed)
-	case Zlib:
+	case CompressionZlib:
 		writer = zlib.NewWriter(&compressed)
 	}
 
@@ -258,8 +260,8 @@ func Fac(settings Settings) {
 	}
 
 
-	if true {
-		compressedContent, err := compress(content, Gzip)
+	if settings.Compression != CompressionNone {
+		compressedContent, err := compress(content, settings.Compression)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
