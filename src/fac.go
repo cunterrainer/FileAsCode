@@ -260,7 +260,6 @@ func Fac(settings Settings) {
 		content = bytes
 	}
 
-
 	if settings.Compression != CompressionNone {
 		compressedContent, err := compress(content, settings.Compression, settings.CompressLvl)
 		if err != nil {
@@ -269,7 +268,6 @@ func Fac(settings Settings) {
 		}
 		content = compressedContent
 	}
-
 
 	outputFile := getOutputFile(settings.OutputPath)
 	bufferedWriter := bufio.NewWriter(outputFile)
