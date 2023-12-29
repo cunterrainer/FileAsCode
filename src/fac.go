@@ -26,7 +26,7 @@ func writeHeader(w io.Writer) {
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "// FileAsCode exporter                                                          //")
 	fmt.Fprintln(w, "//                                                                              //")
-	fmt.Fprintln(w, "// more infos and bug-reports: github.com/pyvyx/FileAsCode                      //")
+	fmt.Fprintln(w, "// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //")
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "//////////////////////////////////////////////////////////////////////////////////")
 	fmt.Fprintln(w)
@@ -115,9 +115,9 @@ func Fac(settings Settings) {
 	}
 	
 	bufferedWriter := bufio.NewWriter(os.Stdout)
+	defer bufferedWriter.Flush()
 
 	writeHeader(bufferedWriter)
 	writeArray(bufferedWriter, content, getConstVariant(settings.CStyle, settings.InlineVars), settings.WriteChars, settings.StdArray)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
-	bufferedWriter.Flush()
 }
