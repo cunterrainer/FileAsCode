@@ -23,13 +23,24 @@ type Settings struct {
 	CStyle      bool
 	Shrink      bool
 	StdArray    bool
-	WriteBits   bool
-	WriteChars  bool
 	InlineVars  bool
 	Uncompress  bool
+	OutputRep   int
 	Compression int
 	CompressLvl int
 }
+
+
+const (
+	CompressionNone = iota
+	CompressionGzip
+	CompressionZlib
+
+	OutputHex // default
+	OutputChars
+	OutputBinary
+	OutputDecimal
+)
 
 
 func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression int) {
@@ -84,7 +95,7 @@ func writeByteAsChar(w io.Writer, b byte) {
 }
 
 
-func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, writeBits bool, stdArray bool, shrink bool) {
+func writeArray(w io.Writer, bytes []byte, constVariant string, outputRep int, stdArray bool, shrink bool) {
 	bytesLen := len(bytes)
 
 	if stdArray {
@@ -98,8 +109,10 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 	}
 
 	nextLineMod := 16
-	if writeBits {
+	if outputRep == OutputBinary {
 		nextLineMod = 8
+	} else if outputRep == OutputDecimal {
+		nextLineMod = 19
 	}
 
 	for i, b := range bytes {
@@ -114,29 +127,35 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 				fmt.Fprintf(w, "%d,", b)
 			}
 		} else if processed == bytesLen {
-			if writeChar {
+			if outputRep == OutputChars {
 				writeByteAsChar(w, b)
 				fmt.Fprint(w, "\n};\n")
-			} else if writeBits {
+			} else if outputRep == OutputBinary {
 				fmt.Fprintf(w, "0b%08b\n};\n", b)
+			} else if outputRep == OutputDecimal {
+				fmt.Fprintf(w, "%3d\n};\n", b)
 			} else {
 				fmt.Fprintf(w, "0x%02X\n};\n", b)
 			}
 		} else if processed%nextLineMod == 0 {
-			if writeChar {
+			if outputRep == OutputChars {
 				writeByteAsChar(w, b)
 				fmt.Fprint(w, ",\n\t")
-			} else if writeBits {
+			} else if outputRep == OutputBinary {
 				fmt.Fprintf(w, "0b%08b,\n\t", b)
+			} else if outputRep == OutputDecimal {
+				fmt.Fprintf(w, "%3d,\n\t", b)
 			} else {
 				fmt.Fprintf(w, "0x%02X,\n\t", b)
 			}
 		} else {
-			if writeChar {
+			if outputRep == OutputChars {
 				writeByteAsChar(w, b)
 				fmt.Fprintf(w, ", ")
-			} else if writeBits {
+			} else if outputRep == OutputBinary {
 				fmt.Fprintf(w, "0b%08b, ", b)
+			} else if outputRep == OutputDecimal {
+				fmt.Fprintf(w, "%3d, ", b)
 			} else {
 				fmt.Fprintf(w, "0x%02X, ", b)
 			}
@@ -276,13 +295,6 @@ func readFileUncompressed(path string) ([]byte, int, int, int, error) {
 }
 
 
-const (
-	CompressionNone = iota
-	CompressionGzip
-	CompressionZlib
-)
-
-
 func compress(input []byte, algorithm int, compressionLevel int) ([]byte, error) {
 	var compressed bytes.Buffer
 	var writer interface {
@@ -349,7 +361,7 @@ func Fac(settings Settings) {
 	bufferedWriter := bufio.NewWriter(outputFile)
 
 	writeHeader(bufferedWriter, headerVariables, settings.StdArray, settings.Compression)
-	writeArray(bufferedWriter, content, constVariant, settings.WriteChars, settings.WriteBits, settings.StdArray, settings.Shrink)
+	writeArray(bufferedWriter, content, constVariant, settings.OutputRep, settings.StdArray, settings.Shrink)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
 
 	bufferedWriter.Flush()
