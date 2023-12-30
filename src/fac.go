@@ -4,14 +4,13 @@ import (
 	"io"
 	"os"
 	"fmt"
+	"image"
 	"bufio"
 	"bytes"
-	"image"
 	"errors"
-	"image/draw"
 	_ "image/gif"
-	_ "image/jpeg"
 	_ "image/png"
+	_ "image/jpeg"
 	"compress/gzip"
 	"compress/zlib"
 )
@@ -30,7 +29,7 @@ type Settings struct {
 }
 
 
-func writeHeader(w io.Writer, stdArray bool) {
+func writeHeader(w io.Writer, stdArray bool, compression int) {
 	fmt.Fprintln(w, "#ifndef FILE_AS_CODE_H")
 	fmt.Fprintln(w, "#define FILE_AS_CODE_H")
 	if stdArray {
@@ -41,6 +40,13 @@ func writeHeader(w io.Writer, stdArray bool) {
 	fmt.Fprintln(w, "// FileAsCode exporter                                                          //")
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //")
+	if compression == CompressionGzip {
+		fmt.Fprintln(w, "//                                                                              //")
+		fmt.Fprintln(w, "// Compression: gzip                                                            //")
+	} else if compression == CompressionZlib {
+		fmt.Fprintln(w, "//                                                                              //")
+		fmt.Fprintln(w, "// Compression: zlib                                                            //")
+	}
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "//////////////////////////////////////////////////////////////////////////////////")
 	fmt.Fprintln(w)
@@ -107,6 +113,10 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 				fmt.Fprintf(w, "0x%02X, ", b)
 			}
 		}
+	}
+
+	if !stdArray {
+		fmt.Fprintf(w, "%s unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", constVariant)
 	}
 }
 
@@ -180,11 +190,23 @@ func getImageBytes(img image.Image) ([]byte, error) {
 			return nil, errors.New("Failed to convert Paletted image to byte array")
 		}
 	default:
-		// convert it to RGBA
-		rgba := image.NewRGBA(img.Bounds())
-		draw.Draw(rgba, rgba.Bounds(), img, image.Point{}, draw.Over)
-		if _, err := buf.Write(rgba.Pix); err != nil {
-			return nil, fmt.Errorf("Failed to convert to RGBA image, unsupported image format: %T", img)
+		// Create RGB image
+		capacity := img.Bounds().Dx()*img.Bounds().Dy()*3
+		buf.Grow(capacity)
+
+		for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+			for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+				r, g, b, _ := img.At(x, y).RGBA()
+
+				// Normalize the values to the range of 0-255 with rounding
+				r = (uint32(r) * 0xFF + 0x7FFF) / 0xFFFF
+				g = (uint32(g) * 0xFF + 0x7FFF) / 0xFFFF
+				b = (uint32(b) * 0xFF + 0x7FFF) / 0xFFFF
+
+				buf.WriteByte(byte(r))
+				buf.WriteByte(byte(g))
+				buf.WriteByte(byte(b))
+			}
 		}
 	}
 
@@ -272,7 +294,7 @@ func Fac(settings Settings) {
 	outputFile := getOutputFile(settings.OutputPath)
 	bufferedWriter := bufio.NewWriter(outputFile)
 
-	writeHeader(bufferedWriter, settings.StdArray)
+	writeHeader(bufferedWriter, settings.StdArray, settings.Compression)
 	writeArray(bufferedWriter, content, getConstVariant(settings.CStyle, settings.InlineVars), settings.WriteChars, settings.StdArray)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
 
