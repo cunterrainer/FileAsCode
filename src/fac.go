@@ -18,14 +18,15 @@ import (
 
 
 type Settings struct {
-	InputPath  string
-	OutputPath string
-	CStyle     bool
-	Shrink     bool
-	StdArray   bool
-	WriteChars bool
-	InlineVars bool
-	Uncompress bool
+	InputPath   string
+	OutputPath  string
+	CStyle      bool
+	Shrink      bool
+	StdArray    bool
+	WriteBits   bool
+	WriteChars  bool
+	InlineVars  bool
+	Uncompress  bool
 	Compression int
 	CompressLvl int
 }
@@ -83,7 +84,7 @@ func writeByteAsChar(w io.Writer, b byte) {
 }
 
 
-func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, stdArray bool, shrink bool) {
+func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, writeBits bool, stdArray bool, shrink bool) {
 	bytesLen := len(bytes)
 
 	if stdArray {
@@ -96,13 +97,18 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 		fmt.Fprintf(w, "\t")
 	}
 
+	nextLineMod := 16
+	if writeBits {
+		nextLineMod = 8
+	}
+
 	for i, b := range bytes {
 		processed := i + 1
 
 		if shrink {
 			if processed == bytesLen {
 				fmt.Fprintf(w, "%d\n};\n", b)
-			} else if processed % 32 == 0 {
+			} else if processed%32 == 0 {
 				fmt.Fprintf(w, "%d,\n", b)
 			} else {
 				fmt.Fprintf(w, "%d,", b)
@@ -111,13 +117,17 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 			if writeChar {
 				writeByteAsChar(w, b)
 				fmt.Fprint(w, "\n};\n")
+			} else if writeBits {
+				fmt.Fprintf(w, "0b%08b\n};\n", b)
 			} else {
 				fmt.Fprintf(w, "0x%02X\n};\n", b)
 			}
-		} else if processed%16 == 0 {
+		} else if processed%nextLineMod == 0 {
 			if writeChar {
 				writeByteAsChar(w, b)
 				fmt.Fprint(w, ",\n\t")
+			} else if writeBits {
+				fmt.Fprintf(w, "0b%08b,\n\t", b)
 			} else {
 				fmt.Fprintf(w, "0x%02X,\n\t", b)
 			}
@@ -125,6 +135,8 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 			if writeChar {
 				writeByteAsChar(w, b)
 				fmt.Fprintf(w, ", ")
+			} else if writeBits {
+				fmt.Fprintf(w, "0b%08b, ", b)
 			} else {
 				fmt.Fprintf(w, "0x%02X, ", b)
 			}
@@ -224,7 +236,7 @@ func getImageBytes(img image.Image) ([]byte, int, error) {
 	default:
 		// Create RGB image
 		channel = 3
-		capacity := img.Bounds().Dx()*img.Bounds().Dy()*3
+		capacity := img.Bounds().Dx() * img.Bounds().Dy() * 3
 		buf.Grow(capacity)
 
 		for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
@@ -337,7 +349,7 @@ func Fac(settings Settings) {
 	bufferedWriter := bufio.NewWriter(outputFile)
 
 	writeHeader(bufferedWriter, headerVariables, settings.StdArray, settings.Compression)
-	writeArray(bufferedWriter, content, constVariant, settings.WriteChars, settings.StdArray, settings.Shrink)
+	writeArray(bufferedWriter, content, constVariant, settings.WriteChars, settings.WriteBits, settings.StdArray, settings.Shrink)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
 
 	bufferedWriter.Flush()

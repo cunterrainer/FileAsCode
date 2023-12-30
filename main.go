@@ -16,6 +16,7 @@ func printHelp(path string) {
     fmt.Println("        -i   | --input  [FILE]     Input file path")
     fmt.Println("        -o   | --output [FILE]     Output file path")
     fmt.Println("        -a   | --array             Use a std::array instead of a C-Style array")
+    fmt.Println("        -b   | --binary            Write bytes as bits e.g. 00000010")
     fmt.Println("        -c   | --char              Write chars to array instead of their value as hex (if printable)")
     fmt.Println("        -c++ | --cplusplus         Use C-Style variable qualifiers (constexpr)")
     fmt.Println("        -h   | --help              Show this info message")
@@ -39,6 +40,7 @@ func parseArgs() (fac.Settings, error) {
         CStyle: true,
         Shrink: false,
         StdArray: false,
+        WriteBits: false,
         WriteChars: false,
         InlineVars: false,
         Uncompress: false,
@@ -71,6 +73,9 @@ func parseArgs() (fac.Settings, error) {
         } else if argLower == "-l" || argLower == "--inline" {
             settings.InlineVars = true
 
+        } else if argLower == "-b" || argLower == "--binary" {
+            settings.WriteBits = true
+        
         } else if argLower == "-a" || argLower == "--array" {
             settings.StdArray = true
 
