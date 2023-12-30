@@ -15,7 +15,7 @@ func printHelp(path string) {
     fmt.Printf("Usage: %s [options]\nOptions:\n", path)
     fmt.Println("        -i   | --input  [FILE]     Input file path")
     fmt.Println("        -o   | --output [FILE]     Output file path")
-    fmt.Println("        -s   | --std               Use a std::array instead of a C-Style array")
+    fmt.Println("        -a   | --array             Use a std::array instead of a C-Style array")
     fmt.Println("        -c   | --char              Write chars to array instead of their value as hex (if printable)")
     fmt.Println("        -c++ | --cplusplus         Use C-Style variable qualifiers (constexpr)")
     fmt.Println("        -h   | --help              Show this info message")
@@ -69,7 +69,7 @@ func parseArgs() (fac.Settings, error) {
         } else if argLower == "-l" || argLower == "--inline" {
             settings.InlineVars = true
 
-        } else if argLower == "-s" || argLower == "--std" {
+        } else if argLower == "-a" || argLower == "--array" {
             settings.StdArray = true
 
         } else if argLower == "-g" || argLower == "--gzip" {
