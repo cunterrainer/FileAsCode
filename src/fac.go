@@ -21,6 +21,7 @@ type Settings struct {
 	InputPath  string
 	OutputPath string
 	CStyle     bool
+	Shrink     bool
 	StdArray   bool
 	WriteChars bool
 	InlineVars bool
@@ -81,19 +82,31 @@ func writeByteAsChar(w io.Writer, b byte) {
 }
 
 
-func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, stdArray bool) {
+func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, stdArray bool, shrink bool) {
 	bytesLen := len(bytes)
 
 	if stdArray {
-		fmt.Fprintf(w, "%s std::array<unsigned char, %d> sg_File_as_code =\n{\n\t", constVariant, bytesLen)
+		fmt.Fprintf(w, "%s std::array<unsigned char, %d> sg_File_as_code =\n{\n", constVariant, bytesLen)
 	} else {
-		fmt.Fprintf(w, "%s unsigned char sg_File_as_code[] =\n{\n\t", constVariant)
+		fmt.Fprintf(w, "%s unsigned char sg_File_as_code[] =\n{\n", constVariant)
+	}
+
+	if !shrink {
+		fmt.Fprintf(w, "\t")
 	}
 
 	for i, b := range bytes {
 		processed := i + 1
 
-		if processed == bytesLen {
+		if shrink {
+			if processed == bytesLen {
+				fmt.Fprintf(w, "%d\n};\n", b)
+			} else if processed % 32 == 0 {
+				fmt.Fprintf(w, "%d,\n", b)
+			} else {
+				fmt.Fprintf(w, "%d,", b)
+			}
+		} else if processed == bytesLen {
 			if writeChar {
 				writeByteAsChar(w, b)
 				fmt.Fprint(w, "\n};\n")
@@ -313,7 +326,7 @@ func Fac(settings Settings) {
 	bufferedWriter := bufio.NewWriter(outputFile)
 
 	writeHeader(bufferedWriter, headerVariables, settings.StdArray, settings.Compression)
-	writeArray(bufferedWriter, content, constVariant, settings.WriteChars, settings.StdArray)
+	writeArray(bufferedWriter, content, constVariant, settings.WriteChars, settings.StdArray, settings.Shrink)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
 
 	bufferedWriter.Flush()

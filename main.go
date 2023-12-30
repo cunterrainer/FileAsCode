@@ -21,6 +21,7 @@ func printHelp(path string) {
     fmt.Println("        -h   | --help              Show this info message")
     fmt.Println("        -u   | --uncompress        Write uncompressed data to file (jpeg, png, gif)")
     fmt.Println("        -l   | --inline            Inline the variables (starting from C++17)")
+    fmt.Println("        -s   | --shrink            Make the output array as small as possible (Not easy to read)")
     fmt.Println("        -g   | --gzip              Use the gzip compression algorithm to compress data")
     fmt.Println("        -z   | --zlib              Use the zlib compression algorithm to compress data")
     fmt.Println("        -bs  | --best-speed        Use the compression level for best speed")
@@ -36,6 +37,7 @@ func parseArgs() (fac.Settings, error) {
         InputPath: "",
         OutputPath: "",
         CStyle: true,
+        Shrink: false,
         StdArray: false,
         WriteChars: false,
         InlineVars: false,
@@ -71,6 +73,9 @@ func parseArgs() (fac.Settings, error) {
 
         } else if argLower == "-a" || argLower == "--array" {
             settings.StdArray = true
+
+        } else if argLower == "-s" || argLower == "--shrink" {
+            settings.Shrink = true
 
         } else if argLower == "-g" || argLower == "--gzip" {
             settings.Compression = fac.CompressionGzip
