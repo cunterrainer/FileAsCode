@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"strconv"
 	_ "image/gif"
 	_ "image/png"
 	_ "image/jpeg"
@@ -29,7 +30,7 @@ type Settings struct {
 }
 
 
-func writeHeader(w io.Writer, stdArray bool, compression int) {
+func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression int) {
 	fmt.Fprintln(w, "#ifndef FILE_AS_CODE_H")
 	fmt.Fprintln(w, "#define FILE_AS_CODE_H")
 	if stdArray {
@@ -50,6 +51,7 @@ func writeHeader(w io.Writer, stdArray bool, compression int) {
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "//////////////////////////////////////////////////////////////////////////////////")
 	fmt.Fprintln(w)
+	fmt.Fprint(w, headerVariables)
 }
 
 
@@ -155,42 +157,50 @@ func readFileCompressed(path string) ([]byte, error) {
 }
 
 
-func getImageBytes(img image.Image) ([]byte, error) {
+func getImageBytes(img image.Image) ([]byte, int, error) {
 	var buf bytes.Buffer
+	var channel int
 
 	switch img := img.(type) {
 	case *image.RGBA:
+		channel = 4
 		_, err := buf.Write(img.Pix)
 		if err != nil {
-			return nil, errors.New("Failed to convert RGBA image to byte array")
+			return nil, 0, errors.New("Failed to convert RGBA image to byte array")
 		}
 	case *image.NRGBA:
+		channel = 4
 		_, err := buf.Write(img.Pix)
 		if err != nil {
-			return nil, errors.New("Failed to convert NRGBA image to byte array")
+			return nil, 0, errors.New("Failed to convert NRGBA image to byte array")
 		}
 	case *image.Gray:
+		channel = 1
 		_, err := buf.Write(img.Pix)
 		if err != nil {
-			return nil, errors.New("Failed to convert Gray image to byte array")
+			return nil, 0, errors.New("Failed to convert Gray image to byte array")
 		}
 	case *image.Gray16:
+		channel = 1
 		_, err := buf.Write(img.Pix)
 		if err != nil {
-			return nil, errors.New("Failed to convert Gray16 image to byte array")
+			return nil, 0, errors.New("Failed to convert Gray16 image to byte array")
 		}
 	case *image.CMYK:
+		channel = 4
 		_, err := buf.Write(img.Pix)
 		if err != nil {
-			return nil, errors.New("Failed to convert CMYK image to byte array")
+			return nil, 0, errors.New("Failed to convert CMYK image to byte array")
 		}
 	case *image.Paletted:
+		channel = 1
 		_, err := buf.Write(img.Pix)
 		if err != nil {
-			return nil, errors.New("Failed to convert Paletted image to byte array")
+			return nil, 0, errors.New("Failed to convert Paletted image to byte array")
 		}
 	default:
 		// Create RGB image
+		channel = 3
 		capacity := img.Bounds().Dx()*img.Bounds().Dy()*3
 		buf.Grow(capacity)
 
@@ -210,22 +220,24 @@ func getImageBytes(img image.Image) ([]byte, error) {
 		}
 	}
 
-	return buf.Bytes(), nil
+	return buf.Bytes(), channel, nil
 }
 
 
-func readFileUncompressed(path string) ([]byte, error) {
+func readFileUncompressed(path string) ([]byte, int, int, int, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open file '%s': %v", path, err)
+		return nil, 0, 0, 0, fmt.Errorf("Failed to open file '%s': %v", path, err)
 	}
 	defer file.Close()
 
 	image, _, err := image.Decode(file)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode image: %v", err)
+		return nil, 0, 0, 0, fmt.Errorf("Failed to decode image: %v", err)
 	}
-	return getImageBytes(image)
+
+	bytes, channel, err := getImageBytes(image)
+	return bytes, channel, image.Bounds().Dx(), image.Bounds().Dy(), err
 }
 
 
@@ -266,13 +278,19 @@ func compress(input []byte, algorithm int, compressionLevel int) ([]byte, error)
 
 func Fac(settings Settings) {
 	var content []byte
+	var headerVariables string
+	constVariant := getConstVariant(settings.CStyle, settings.InlineVars)
+
 	if settings.Uncompress {
-		bytes, err := readFileUncompressed(settings.InputPath)
+		bytes, channel, width, height, err := readFileUncompressed(settings.InputPath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 		content = bytes
+		headerVariables += constVariant + " unsigned char sg_File_as_code_width   = " + strconv.Itoa(width) + ";\n"
+		headerVariables += constVariant + " unsigned char sg_File_as_code_height  = " + strconv.Itoa(height) + ";\n"
+		headerVariables += constVariant + " unsigned char sg_File_as_code_channel = " + strconv.Itoa(channel) + ";\n\n"
 	} else {
 		bytes, err := readFileCompressed(settings.InputPath)
 		if err != nil {
@@ -294,8 +312,8 @@ func Fac(settings Settings) {
 	outputFile := getOutputFile(settings.OutputPath)
 	bufferedWriter := bufio.NewWriter(outputFile)
 
-	writeHeader(bufferedWriter, settings.StdArray, settings.Compression)
-	writeArray(bufferedWriter, content, getConstVariant(settings.CStyle, settings.InlineVars), settings.WriteChars, settings.StdArray)
+	writeHeader(bufferedWriter, headerVariables, settings.StdArray, settings.Compression)
+	writeArray(bufferedWriter, content, constVariant, settings.WriteChars, settings.StdArray)
 	fmt.Fprint(bufferedWriter, "#endif // FILE_AS_CODE_H")
 
 	bufferedWriter.Flush()
