@@ -36,6 +36,7 @@ func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression
 	fmt.Fprintln(w, "#define FILE_AS_CODE_H")
 	if stdArray {
 		fmt.Fprintln(w, "#include <array>")
+		fmt.Fprintln(w, "#include <cstdint>")
 	}
 	fmt.Fprintln(w, "//////////////////////////////////////////////////////////////////////////////////")
 	fmt.Fprintln(w, "//                                                                              //")
@@ -86,7 +87,7 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 	bytesLen := len(bytes)
 
 	if stdArray {
-		fmt.Fprintf(w, "%s std::array<unsigned char, %d> sg_File_as_code =\n{\n", constVariant, bytesLen)
+		fmt.Fprintf(w, "%s std::array<std::uint8_t, %d> sg_File_as_code =\n{\n", constVariant, bytesLen)
 	} else {
 		fmt.Fprintf(w, "%s unsigned char sg_File_as_code[] =\n{\n", constVariant)
 	}
@@ -131,7 +132,7 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, writeChar bool, 
 	}
 
 	if !stdArray {
-		fmt.Fprintf(w, "%s unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", constVariant)
+		fmt.Fprintf(w, "%s unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", constVariant)
 	}
 }
 
@@ -145,6 +146,15 @@ func getConstVariant(cstyle bool, inline bool) string {
 		return "inline constexpr"
 	}
 	return "static constexpr"
+}
+
+
+func getIntType(stdArray bool) string {
+	if stdArray {
+		return "std::size_t"
+	} else {
+		return "unsigned int"
+	}
 }
 
 
@@ -301,9 +311,10 @@ func Fac(settings Settings) {
 			return
 		}
 		content = bytes
-		headerVariables += constVariant + " unsigned int sg_File_as_code_width   = " + strconv.Itoa(width) + ";\n"
-		headerVariables += constVariant + " unsigned int sg_File_as_code_height  = " + strconv.Itoa(height) + ";\n"
-		headerVariables += constVariant + " unsigned int sg_File_as_code_channel = " + strconv.Itoa(channel) + ";\n\n"
+		intType := getIntType(settings.StdArray)
+		headerVariables += constVariant + " " + intType + " sg_File_as_code_width   = " + strconv.Itoa(width) + ";\n"
+		headerVariables += constVariant + " " + intType + " sg_File_as_code_height  = " + strconv.Itoa(height) + ";\n"
+		headerVariables += constVariant + " " + intType + " sg_File_as_code_channel = " + strconv.Itoa(channel) + ";\n\n"
 	} else {
 		bytes, err := readFileCompressed(settings.InputPath)
 		if err != nil {
