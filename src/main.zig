@@ -81,7 +81,7 @@ pub fn write_bytes_format(var_modifier: [] const u8, writer: anytype, buffer: []
 
     if (!std_array)
     {
-        _ = try writer.print("{s} unsigned int sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", .{var_modifier});
+        _ = try writer.print("{s} unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) / sizeof(*sg_File_as_code);\n", .{var_modifier});
     }
     _ = try writer.write("#endif // FILE_AS_CODE_H");
 }
@@ -466,9 +466,9 @@ pub fn uncompress_data(allocator: std.mem.Allocator, path: [] const u8, header_c
     const data = try allocator.alloc(u8, @intCast(width*height*channel));
     std.mem.copyForwards(u8, data, s[0..@intCast(width*height*channel)]);
     stb.stbi_image_free(s);
-    try int_to_string(header_content, width,   var_modifier, " unsigned char sg_File_as_code_width   = ", ";\n");
-    try int_to_string(header_content, height,  var_modifier, " unsigned char sg_File_as_code_height  = ", ";\n");
-    try int_to_string(header_content, channel, var_modifier, " unsigned char sg_File_as_code_channel = ", ";\n\n");
+    try int_to_string(header_content, width,   var_modifier, " unsigned int sg_File_as_code_width   = ", ";\n");
+    try int_to_string(header_content, height,  var_modifier, " unsigned int sg_File_as_code_height  = ", ";\n");
+    try int_to_string(header_content, channel, var_modifier, " unsigned int sg_File_as_code_channel = ", ";\n\n");
     return data;
 }
 
