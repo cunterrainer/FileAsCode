@@ -301,9 +301,9 @@ func Fac(settings Settings) {
 			return
 		}
 		content = bytes
-		headerVariables += constVariant + " unsigned char sg_File_as_code_width   = " + strconv.Itoa(width) + ";\n"
-		headerVariables += constVariant + " unsigned char sg_File_as_code_height  = " + strconv.Itoa(height) + ";\n"
-		headerVariables += constVariant + " unsigned char sg_File_as_code_channel = " + strconv.Itoa(channel) + ";\n\n"
+		headerVariables += constVariant + " unsigned int sg_File_as_code_width   = " + strconv.Itoa(width) + ";\n"
+		headerVariables += constVariant + " unsigned int sg_File_as_code_height  = " + strconv.Itoa(height) + ";\n"
+		headerVariables += constVariant + " unsigned int sg_File_as_code_channel = " + strconv.Itoa(channel) + ";\n\n"
 	} else {
 		bytes, err := readFileCompressed(settings.InputPath)
 		if err != nil {
