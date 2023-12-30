@@ -1,8 +1,4 @@
-zig-cache/
-zig-out/
-build/
-build-*/
-docgen_tmp/
-
-*.txt
+*.exe
+*.jpeg
+*.jpg
 *.png
