@@ -27,6 +27,8 @@ func printHelp(path string) {
     fmt.Println("        -s   | --shrink            Make the output array as small as possible (Not easy to read)")
     fmt.Println("        -g   | --gzip              Use the gzip compression algorithm to compress data")
     fmt.Println("        -z   | --zlib              Use the zlib compression algorithm to compress data")
+    fmt.Println("        -p   | --png               Use with '-r' to convert an array to a png (only if array creation with '-u')")
+    fmt.Println("        -j   | --jpg               Use with '-r' to convert an array to a jpg (only if array creation with '-u')")
     fmt.Println("        -bs  | --best-speed        Use the compression level for best speed")
     fmt.Println("        -bc  | --best-compression  Use the compression level for best compression")
     fmt.Println("                                   If neither '-bs' nor '-bc' is set default compression is used")
@@ -71,6 +73,12 @@ func parseArgs() (fac.Settings, error) {
 
         } else if argLower == "-r" || argLower == "--reverse" {
             settings.Reverse = true
+
+        } else if argLower == "-p" || argLower == "--png" {
+            settings.FileType = fac.FilePNG
+
+        } else if argLower == "-j" || argLower == "--jpg" {
+            settings.FileType = fac.FileJPEG
 
         } else if argLower == "-u" || argLower == "--uncompressed" {
             settings.Uncompress = true

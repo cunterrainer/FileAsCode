@@ -1,14 +1,14 @@
 package fac
 
 import (
-	"bufio"
-	"fmt"
 	"io"
 	"os"
+	"fmt"
+	"bufio"
 	"image"
-	"image/color"
-	_"image/png"
+	"image/png"
 	"image/jpeg"
+	"image/color"
 )
 
 
@@ -51,7 +51,7 @@ func Caf(settings Settings) {
 	outputFile := GetOutputFile(settings.OutputPath)
 	bufferedWriter := bufio.NewWriter(outputFile)
 
-	if settings.Uncompress {
+	if settings.FileType == FileJPEG || settings.FileType == FilePNG {
 		if parser.width == 0 || parser.height == 0 || parser.channel == 0 {
 			fmt.Fprintln(os.Stderr, "Failed to parse image properties")
 			return
@@ -68,9 +68,14 @@ func Caf(settings Settings) {
 			})
 		}
 
-		err = jpeg.Encode(bufferedWriter, img, nil)
+		if settings.FileType == FilePNG {
+			err = png.Encode(bufferedWriter, img)
+		} else {
+			err = jpeg.Encode(bufferedWriter, img, nil)
+		}
+		
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to encode png image: ", err)
+			fmt.Fprintln(os.Stderr, "Failed to encode image: ", err)
 			return
 		}
 	} else {

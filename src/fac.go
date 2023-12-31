@@ -26,6 +26,7 @@ type Settings struct {
 	StdArray    bool
 	InlineVars  bool
 	Uncompress  bool
+	FileType    int
 	OutputRep   int
 	Compression int
 	CompressLvl int
@@ -41,6 +42,9 @@ const (
 	OutputChars
 	OutputBinary
 	OutputDecimal
+
+	FilePNG
+	FileJPEG
 )
 
 
