@@ -10,7 +10,6 @@ import (
 
 
 type Parser struct {
-	foundEnd   bool
 	foundStart bool
 	data bytes.Buffer
 	remaining string
@@ -19,8 +18,8 @@ type Parser struct {
 
 func CreateParser(growRate int) Parser {
 	p := Parser{
-		foundEnd: false,
 		foundStart: false,
+		remaining: "",
 	}
 	if growRate > 0 {
 		p.data.Grow(growRate)
@@ -106,16 +105,11 @@ func (p* Parser) ParseChunk(fileData []byte, fileDataSize int) {
 			return
 		}
 
-		if !p.foundStart || p.foundEnd {
+		if !p.foundStart {
 			if chunk[i] == '{' {
 				p.foundStart = true
 			}
 			continue
-		}
-
-		if chunk[i] == '}' {
-			p.foundEnd = true
-			return
 		}
 
 		value, found, idx, err := getNextValue(chunk[i:totalSize])
