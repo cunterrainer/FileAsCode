@@ -55,16 +55,23 @@ func Caf(settings Settings) {
 		if parser.width == 0 || parser.height == 0 || parser.channel == 0 {
 			fmt.Fprintln(os.Stderr, "Failed to parse image properties")
 			return
+		} else if parser.channel < 3 {
+			fmt.Fprintln(os.Stderr, "Image with less than 3 channels not supported")
+			return
 		}
 		img := image.NewRGBA(image.Rect(0, 0, parser.width, parser.height))
 
 		dataLen := len(data)
-		for i := 0; i < dataLen; i += 3 {
+		for i := 0; i < dataLen; i += parser.channel {
+			var alphaValue byte = 255
+			if parser.channel == 4 {
+				alphaValue = data[i+3]
+			}
 			img.Set(i / parser.channel % parser.width, i / parser.channel / parser.width, color.RGBA{
 				R: data[i],
 				G: data[i+1],
 				B: data[i+2],
-				A: 255,
+				A: alphaValue,
 			})
 		}
 
@@ -73,7 +80,7 @@ func Caf(settings Settings) {
 		} else {
 			err = jpeg.Encode(bufferedWriter, img, nil)
 		}
-		
+
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to encode image: ", err)
 			return
