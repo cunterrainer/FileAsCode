@@ -2,7 +2,7 @@
 Convert files into C arrays and vice versa.
 
 # Example
-Checkout [example.txt](example.txt) for more supported conversions
+Checkout [examples.md](examples.md) for more supported conversions
 ``` c++
 #ifndef FILE_AS_CODE_H
 #define FILE_AS_CODE_H
