@@ -66,28 +66,17 @@ func getNextValue(rest []byte) (byte, bool, int, error) {
 			block = strings.ReplaceAll(block, "\n", "")
 			block = strings.ReplaceAll(block, "\r", "")
 			if block[0] == '0' && block[1] == 'x' {
-				block = string(block[2:4])
-				byteValue, valueError = strconv.ParseUint(block, 16, 8)
-				//return string(block[2:4]), i
+				byteValue, valueError = strconv.ParseUint(string(block[2:4]), 16, 8)
 			} else if block[0] == '0' && block[1] == 'b' {
-				block = string(block[2:10])
-				byteValue, valueError = strconv.ParseUint(block, 2, 8)
-				//return string(block[2:10]), i
+				byteValue, valueError = strconv.ParseUint(string(block[2:10]), 2, 8)
 			} else if block[1] == ',' || block[1] == '}' { // decimal 0 - 9
-				block = string(block[0:1])
-				byteValue, valueError = strconv.ParseUint(block, 10, 8)
-				//return string(block[0:1]), i
+				byteValue, valueError = strconv.ParseUint(string(block[0:1]), 10, 8)
 			} else if block[2] == ',' || block[2] == '}' { // decimal 10 - 99
-				block = string(block[0:2])
-				byteValue, valueError = strconv.ParseUint(block, 10, 8)
-				//return string(block[0:2]), i
+				byteValue, valueError = strconv.ParseUint(string(block[0:2]), 10, 8)
 			} else if block[3] == ',' || block[3] == '}' { // decimal 100 - 255
-				block = string(block[0:3])
-				byteValue, valueError = strconv.ParseUint(block, 10, 8)
-				//return string(block[0:3]), i
+				byteValue, valueError = strconv.ParseUint(string(block[0:3]), 10, 8)
 			}
 			break
-			//return "block", i
 		}
 	}
 	return byte(byteValue), found, idx, valueError
