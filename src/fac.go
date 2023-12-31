@@ -22,6 +22,7 @@ type Settings struct {
 	OutputPath  string
 	CStyle      bool
 	Shrink      bool
+	Reverse     bool
 	StdArray    bool
 	InlineVars  bool
 	Uncompress  bool
@@ -189,7 +190,7 @@ func getIntType(stdArray bool) string {
 }
 
 
-func getOutputFile(outputPath string) *os.File {
+func GetOutputFile(outputPath string) *os.File {
 	if outputPath == "" {
 		return os.Stdout
 	}
@@ -357,7 +358,7 @@ func Fac(settings Settings) {
 		content = compressedContent
 	}
 
-	outputFile := getOutputFile(settings.OutputPath)
+	outputFile := GetOutputFile(settings.OutputPath)
 	bufferedWriter := bufio.NewWriter(outputFile)
 
 	writeHeader(bufferedWriter, headerVariables, settings.StdArray, settings.Compression)

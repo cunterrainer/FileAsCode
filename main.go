@@ -15,6 +15,7 @@ func printHelp(path string) {
     fmt.Printf("Usage: %s [options]\nOptions:\n", path)
     fmt.Println("        -i   | --input  [FILE]     Input file path")
     fmt.Println("        -o   | --output [FILE]     Output file path")
+    fmt.Println("        -r   | --reverse           Read a file (e.g. .h/.hpp) containing an array and convert it back")
     fmt.Println("        -a   | --array             Use a std::array instead of a C-Style array")
     fmt.Println("        -d   | --decimal           Write bytes in decimal representation")
     fmt.Println("        -b   | --binary            Write bytes as bits e.g. 00000010")
@@ -40,6 +41,7 @@ func parseArgs() (fac.Settings, error) {
         OutputPath: "",
         CStyle: true,
         Shrink: false,
+        Reverse: false,
         StdArray: false,
         InlineVars: false,
         Uncompress: false,
@@ -66,6 +68,9 @@ func parseArgs() (fac.Settings, error) {
 
         } else if argLower == "-c" || argLower == "--char" {
             settings.OutputRep = fac.OutputChars
+
+        } else if argLower == "-r" || argLower == "--reverse" {
+            settings.Reverse = true
 
         } else if argLower == "-u" || argLower == "--uncompressed" {
             settings.Uncompress = true
@@ -133,5 +138,9 @@ func main() {
         return
     }
 
-    fac.Fac(settings)
+    if settings.Reverse {
+        fac.Caf(settings)
+    } else {
+        fac.Fac(settings)
+    }
 }
