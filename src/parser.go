@@ -1,9 +1,9 @@
 package fac
 
 import (
-	"os"
-	"fmt"
 	"bytes"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -13,6 +13,9 @@ type Parser struct {
 	foundStart bool
 	data bytes.Buffer
 	remaining string
+	width int
+	height int
+	channel int
 }
 
 
@@ -20,6 +23,9 @@ func CreateParser(growRate int) Parser {
 	p := Parser{
 		foundStart: false,
 		remaining: "",
+		width: 0,
+		height: 0,
+		channel: 0,
 	}
 	if growRate > 0 {
 		p.data.Grow(growRate)
@@ -83,6 +89,37 @@ func getNextValue(rest []byte) (byte, bool, int, error) {
 }
 
 
+func getIntVariable(chunk []byte) (uint64, int) {
+	size := len(chunk)
+
+	for i := 0; i < size; i++ {
+		if chunk[i] != ';' {
+			continue
+		}
+
+		block := string(chunk[0:i])
+		block = strings.ReplaceAll(block, " ", "")
+		block = strings.ReplaceAll(block, "\t", "")
+		block = strings.ReplaceAll(block, "\n", "")
+		block = strings.ReplaceAll(block, "\r", "")
+		value, _ := strconv.ParseUint(block, 10, 64)
+		return value, i
+	}
+	return 0, 0
+}
+
+
+func (p* Parser) setImageProperty(value int) {
+	if p.width == 0 {
+		p.width = value
+	} else if p.height == 0 {
+		p.height = value
+	} else if p.channel == 0 {
+		p.channel = value
+	}
+}
+
+
 func (p* Parser) ParseChunk(fileData []byte, fileDataSize int) {
 	chunk := append([]byte(p.remaining), fileData[0:fileDataSize]...)
 	totalSize := len(p.remaining) + fileDataSize
@@ -97,6 +134,10 @@ func (p* Parser) ParseChunk(fileData []byte, fileDataSize int) {
 		if !p.foundStart {
 			if chunk[i] == '{' {
 				p.foundStart = true
+			} else if chunk[i] == '=' {
+				value, idx := getIntVariable(chunk[i+1:totalSize])
+				i += idx
+				p.setImageProperty(int(value))
 			}
 			continue
 		}
