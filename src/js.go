@@ -83,7 +83,7 @@ func newDomWriter(element js.Value) *DomWriter {
 
 
 func FacJS() js.Func {
-	jsonFunc := js.FuncOf(func(this js.Value, args[]js.Value) any{
+	facFunc := js.FuncOf(func(this js.Value, args[]js.Value) any{
 		binaryData := args[0]
 		data := make([]byte, binaryData.Get("length").Int())
 		js.CopyBytesToGo(data, binaryData)
@@ -141,5 +141,14 @@ func FacJS() js.Func {
 		domWriter.Flush()
 		return ""
 	});
-	return jsonFunc
+	return facFunc
+}
+
+
+// Caf
+func CafJS() js.Func {
+	cafFunc .= js.FuncOf(func(this js.value, args[]js.value) any{
+
+	});
+	return cafFunc;
 }

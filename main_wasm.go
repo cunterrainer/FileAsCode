@@ -9,5 +9,6 @@ import (
 
 func main() {
 	js.Global().Set("FacJS", fac.FacJS())
+	js.Global().Set("CafJS", fac.CafJS())
 	<-make(chan struct{})
 }
