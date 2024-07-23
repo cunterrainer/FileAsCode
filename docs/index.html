@@ -34,16 +34,10 @@
             <input type="file" class="form-control" id="fileInput">
         </div>
 
-        <!-- Input Field -->
-        <div class="form-group">
-            <label for="inputField">Input Field</label>
-            <input type="text" class="form-control" id="inputField" placeholder="Enter text">
-        </div>
-
         <!-- Combo Box for Decimal, Binary, Char -->
         <div class="form-group">
-            <label for="numberType">Number Type</label>
-            <select class="form-control" id="numberType">
+            <label for="outputFormat">Number Type</label>
+            <select class="form-control" id="outputFormat">
                 <option>Hex</option>
                 <option>Char</option>
                 <option>Binary</option>
@@ -110,7 +104,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button class="btn btn-primary" onclick="fac('as',true,true,true,true,true,true,1,1,1,1)">Submit</button>
+        <button class="btn btn-primary" onclick="fac()">Submit</button>
 
         <div class="form-group mt-4">
             <label for="textOutput">Text Output</label>
@@ -119,11 +113,12 @@
     </div>
 
     <script>
-        function processFile()
+        fac = function()
         {
             const fileInput = document.getElementById('fileInput');
-            if (fileInput.files.length === 0) {
-                alert('Please select a file');
+            if (fileInput.files.length === 0)
+            {
+                alert('Error: Please select a file');
                 return;
             }
 
@@ -134,22 +129,18 @@
                 const arrayBuffer = event.target.result;
                 // Convert the ArrayBuffer to a Uint8Array
                 const uint8Array = new Uint8Array(arrayBuffer);
-                // Pass the binary data to the Go Wasm function
 
-                var inputPath = document.getElementById("inputField").value;
                 var cstyle = document.getElementById("cppCheckbox").checked;
                 var shrink = document.getElementById("shrinkCheckbox").checked;
-                var reverse = document.getElementById("reverseCheckbox").checked;
                 var stdarray = document.getElementById("arrayCheckbox").checked;
                 var inlineVars = document.getElementById("inlineCheckbox").checked;
                 var uncompress = document.getElementById("ucCheckbox").checked;
-                var fileType = document.getElementById("imageFormat").selectedIndex;
-                var outputRep = document.getElementById("numberType").selectedIndex;
+                var outputRep = document.getElementById("outputFormat").selectedIndex;
                 var compression = document.getElementById("gzipCheckbox").checked ? 1 : (document.getElementById("zlibCheckbox").checked ? 2 : 0);
                 var compressLvl = document.getElementById("speedCompression").selectedIndex;
 
-                let errorMsg = formatJSON(uint8Array, cstyle, shrink, reverse, stdarray, inlineVars, uncompress, fileType, outputRep, compression, compressLvl);
-
+                // TODO: add limit for output e.g. too large of an image file
+                let errorMsg = FacJS(uint8Array, cstyle, shrink, stdarray, inlineVars, uncompress, outputRep, compression, compressLvl);
                 if (errorMsg)
                 {
                     alert("Error message: " + errorMsg);
@@ -157,12 +148,6 @@
             };
             reader.readAsArrayBuffer(file);
         }
-
-        var fac = function(inputPath, cstyle, shrink, reverse, stdarray, inlineVars, uncompress, fileType, outputRep, compression, compressLvl)
-        {
-            processFile();
-        }
-
     </script>
 
     <!-- Bootstrap JS and dependencies -->

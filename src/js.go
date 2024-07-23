@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"image"
 	"bytes"
-	"strconv"
 	"bufio"
+	"strconv"
 	"syscall/js"
-    "compress/flate"
-
-	
 	_ "image/gif"
 	_ "image/png"
 	_ "image/jpeg"
+    "compress/flate"
 )
 
 
@@ -20,21 +18,19 @@ func parseSettings(args[]js.Value) Settings {
 	settings := Settings{
 		CStyle:      args[1].Bool(),
 		Shrink:      args[2].Bool(),
-		Reverse:     args[3].Bool(),
-		StdArray:    args[4].Bool(),
-		InlineVars:  args[5].Bool(),
-		Uncompress:  args[6].Bool(),
-		FileType:    args[7].Int(),
-		OutputRep:   args[8].Int(),
-		Compression: args[9].Int(),
-		CompressLvl: args[10].Int(),
+		StdArray:    args[3].Bool(),
+		InlineVars:  args[4].Bool(),
+		Uncompress:  args[5].Bool(),
+		OutputRep:   args[6].Int(),
+		Compression: args[7].Int(),
+		CompressLvl: args[8].Int(),
 	}
 
-	if settings.FileType == 0 {
-		settings.FileType = FilePNG
-	} else {
-		settings.FileType = FileJPEG
-	}
+	//if settings.FileType == 0 {
+	//	settings.FileType = FilePNG
+	//} else {
+	//	settings.FileType = FileJPEG
+	//}
 
 	settings.OutputRep += OutputHex
 	settings.Compression += CompressionNone
@@ -88,10 +84,6 @@ func newDomWriter(element js.Value) *DomWriter {
 
 func FacJS() js.Func {
 	jsonFunc := js.FuncOf(func(this js.Value, args[]js.Value) any{
-		if len(args) != 11 {
-			return "Invalid number of arguments"
-		}
-
 		binaryData := args[0]
 		data := make([]byte, binaryData.Get("length").Int())
 		js.CopyBytesToGo(data, binaryData)
@@ -132,13 +124,13 @@ func FacJS() js.Func {
 			return "Unable to get document object"
 		}
 
-		jsonOuputTextArea := jsDoc.Call("getElementById", "textOutput")
-		if !jsonOuputTextArea.Truthy() {
+		testOutputArea := jsDoc.Call("getElementById", "textOutput")
+		if !testOutputArea.Truthy() {
 			return "Unable to get output text area"
 		}
 
 
-		domWriter := newDomWriter(jsonOuputTextArea)
+		domWriter := newDomWriter(testOutputArea)
 		bufferedWriter := bufio.NewWriter(domWriter)
 
 		writeHeader(bufferedWriter, headerVariables, settings.StdArray, settings.Compression)

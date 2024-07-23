@@ -8,6 +8,6 @@ import (
 )
 
 func main() {
-	js.Global().Set("formatJSON", fac.FacJS())
+	js.Global().Set("FacJS", fac.FacJS())
 	<-make(chan struct{})
 }
