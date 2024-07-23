@@ -24,93 +24,136 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="mb-4">File as code</h2>
+        <h2 class="mb-4" id="title">File as code</h2>
         
-        <!-- File Input -->
-        <div class="form-group">
-            <label for="fileInput">Select File</label>
-            <input type="file" class="form-control" id="fileInput">
+        <!-- Toggle Buttons -->
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-primary" onclick="showFAC()">File as code</button>
+            <button type="button" class="btn btn-secondary" onclick="showCAF()">Code as file</button>
         </div>
 
-        <!-- Combo Box for Decimal, Binary, Char -->
-        <div class="form-group">
-            <label for="outputFormat">Number Type</label>
-            <select class="form-control" id="outputFormat">
-                <option>Hex</option>
-                <option>Char</option>
-                <option>Binary</option>
-                <option>Decimal</option>
-            </select>
+        <!-- FAC Content -->
+        <div id="facContent" class="mt-4" style="display: none;">
+            <!-- File Input -->
+            <div class="form-group">
+                <label for="fileInput">Select File</label>
+                <input type="file" class="form-control" id="fileInput">
+            </div>
+
+            <!-- Combo Box for Decimal, Binary, Char -->
+            <div class="form-group">
+                <label for="outputFormat">Number Type</label>
+                <select class="form-control" id="outputFormat">
+                    <option>Hex</option>
+                    <option>Char</option>
+                    <option>Binary</option>
+                    <option>Decimal</option>
+                </select>
+            </div>
+
+            <!-- Individual Checkboxes -->
+            <div class="form-group">
+                <label>Options</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="arrayCheckbox">
+                    <label class="form-check-label" for="arrayCheckbox">Array</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cppCheckbox">
+                    <label class="form-check-label" for="cppCheckbox">C++</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ucCheckbox">
+                    <label class="form-check-label" for="ucCheckbox">UC</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="inlineCheckbox">
+                    <label class="form-check-label" for="inlineCheckbox">Inline</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="shrinkCheckbox">
+                    <label class="form-check-label" for="shrinkCheckbox">Shrink</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="gzipCheckbox">
+                    <label class="form-check-label" for="gzipCheckbox">Gzip</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="zlibCheckbox">
+                    <label class="form-check-label" for="zlibCheckbox">Zlib</label>
+                </div>
+            </div>
+
+            <!-- Combo Box for Speed/Compression -->
+            <div class="form-group">
+                <label for="speedCompression">Speed/Compression</label>
+                <select class="form-control" id="speedCompression">
+                    <option>Default</option>
+                    <option>Best speed</option>
+                    <option>Best compression</option>
+                </select>
+            </div>
+
+            <!-- Reverse Checkbox -->
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="reverseCheckbox">
+                <label class="form-check-label" for="reverseCheckbox">Reverse</label>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn btn-primary" onclick="fac()">Submit</button>
+
+            <div class="form-group mt-4">
+                <label for="textOutput">Text Output</label>
+                <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
+            </div>
         </div>
 
-        <!-- Individual Checkboxes -->
-        <div class="form-group">
-            <label>Options</label>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="arrayCheckbox">
-                <label class="form-check-label" for="arrayCheckbox">Array</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="cppCheckbox">
-                <label class="form-check-label" for="cppCheckbox">C++</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="ucCheckbox">
-                <label class="form-check-label" for="ucCheckbox">UC</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="inlineCheckbox">
-                <label class="form-check-label" for="inlineCheckbox">Inline</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="shrinkCheckbox">
-                <label class="form-check-label" for="shrinkCheckbox">Shrink</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="gzipCheckbox">
-                <label class="form-check-label" for="gzipCheckbox">Gzip</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="zlibCheckbox">
-                <label class="form-check-label" for="zlibCheckbox">Zlib</label>
-            </div>
-        </div>
 
-        <!-- Combo Box for Speed/Compression -->
-        <div class="form-group">
-            <label for="speedCompression">Speed/Compression</label>
-            <select class="form-control" id="speedCompression">
-                <option>Default</option>
-                <option>Best speed</option>
-                <option>Best compression</option>
-            </select>
-        </div>
+        <!-- CAF Content -->
+        <div id="cafContent" class="mt-4" style="display: none;">
+            <!-- File Input -->
+            <div class="form-group">
+                <label for="fileInputCaf">Select File</label>
+                <input type="file" class="form-control" id="fileInputCaf">
+            </div>
 
-        <!-- Reverse Checkbox -->
-        <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="reverseCheckbox">
-            <label class="form-check-label" for="reverseCheckbox">Reverse</label>
-        </div>
+            <!-- Combo Box for PNG/JPG -->
+            <div class="form-group">
+                <label for="imageFormat">Image Format</label>
+                <select class="form-control" id="imageFormat">
+                    <option>PNG</option>
+                    <option>JPG</option>
+                </select>
+            </div>
 
-        <!-- Combo Box for PNG/JPG -->
-        <div class="form-group">
-            <label for="imageFormat">Image Format</label>
-            <select class="form-control" id="imageFormat">
-                <option>PNG</option>
-                <option>JPG</option>
-            </select>
-        </div>
+            <!-- Combo Box for Compression -->
+            <div class="form-group">
+                <label for="compressionCaf">Compression used</label>
+                <select class="form-control" id="compressionCaf">
+                    <option>None</option>
+                    <option>gzip</option>
+                    <option>zlib</option>
+                </select>
+            </div>
 
-        <!-- Submit Button -->
-        <button class="btn btn-primary" onclick="fac()">Submit</button>
-
-        <div class="form-group mt-4">
-            <label for="textOutput">Text Output</label>
-            <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
+            <button class="btn btn-primary" onclick="caf()">Submit</button>
         </div>
     </div>
 
     <script>
+        function showFAC() {
+            document.getElementById('facContent').style.display = 'block';
+            document.getElementById('cafContent').style.display = 'none';
+            document.getElementById("title").innerText = "File as code"
+        }
+
+        function showCAF() {
+            document.getElementById('facContent').style.display = 'none';
+            document.getElementById('cafContent').style.display = 'block';
+            document.getElementById("title").innerText = "Code as file"
+        }
+
         fac = function()
         {
             const fileInput = document.getElementById('fileInput');
