@@ -46,7 +46,7 @@
 
             <!-- Combo Box for Decimal, Binary, Char -->
             <div class="form-group">
-                <label for="outputFormat">Number Type</label>
+                <label for="outputFormat">Numbers representation</label>
                 <select class="form-control" id="outputFormat">
                     <option>Hex</option>
                     <option>Char</option>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="ucCheckbox">
-                    <label class="form-check-label" for="ucCheckbox">UC</label>
+                    <label class="form-check-label" for="ucCheckbox">Uncompress</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="inlineCheckbox">
@@ -78,19 +78,21 @@
                     <input class="form-check-input" type="checkbox" id="shrinkCheckbox">
                     <label class="form-check-label" for="shrinkCheckbox">Shrink</label>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="gzipCheckbox">
-                    <label class="form-check-label" for="gzipCheckbox">Gzip</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="zlibCheckbox">
-                    <label class="form-check-label" for="zlibCheckbox">Zlib</label>
-                </div>
             </div>
 
             <!-- Combo Box for Speed/Compression -->
             <div class="form-group">
-                <label for="speedCompression">Speed/Compression</label>
+                <label for="speedCompression">Compression algorithm</label>
+                <select class="form-control" id="compressionalgorithm">
+                    <option>None</option>
+                    <option>gzip</option>
+                    <option>zlib</option>
+                </select>
+            </div>
+
+            <!-- Combo Box for Speed/Compression -->
+            <div class="form-group">
+                <label for="speedCompression">Compression level</label>
                 <select class="form-control" id="speedCompression">
                     <option>Default</option>
                     <option>Best speed</option>
@@ -98,17 +100,11 @@
                 </select>
             </div>
 
-            <!-- Reverse Checkbox -->
-            <div class="form-group form-check">
-                <input type="checkbox" class="form-check-input" id="reverseCheckbox">
-                <label class="form-check-label" for="reverseCheckbox">Reverse</label>
-            </div>
-
             <!-- Submit Button -->
-            <button class="btn btn-primary" onclick="fac()">Submit</button>
+            <button class="btn btn-primary" onclick="fac()">Convert</button>
 
             <div class="form-group mt-4">
-                <label for="textOutput">Text Output</label>
+                <label for="textOutput">Output</label>
                 <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
             </div>
 
@@ -134,9 +130,9 @@
                 </select>
             </div>
 
-            <div class="form-check">
+            <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="image_compressed">
-                <label class="form-check-label" for="image_compressed">image compressed</label>
+                <label class="form-check-label" for="image_compressed">Image compressed</label>
             </div>
 
             <!-- Combo Box for Compression -->
@@ -149,7 +145,7 @@
                 </select>
             </div>
 
-            <button class="btn btn-primary" onclick="caf()">Submit</button>
+            <button class="btn btn-primary" onclick="caf()">Convert</button>
 
             <div id="imageContainer" class="mt-4"></div>
         </div>
@@ -192,7 +188,7 @@
                 var inlineVars = document.getElementById("inlineCheckbox").checked;
                 var uncompress = document.getElementById("ucCheckbox").checked;
                 var outputRep = document.getElementById("outputFormat").selectedIndex;
-                var compression = document.getElementById("gzipCheckbox").checked ? 1 : (document.getElementById("zlibCheckbox").checked ? 2 : 0);
+                var compression = document.getElementById("compressionalgorithm").selectedIndex;
                 var compressLvl = document.getElementById("speedCompression").selectedIndex;
 
                 // TODO: add limit for output e.g. too large of an image file
