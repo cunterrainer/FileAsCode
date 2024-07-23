@@ -159,6 +159,11 @@ func parseFile(data []byte) Parser {
 }
 
 
+func showError(msg string, err error) {
+	js.Global().Get("showAlert").Invoke(fmt.Sprintf(msg, err));
+}
+
+
 func CafJS() js.Func {
 	cafFunc := js.FuncOf(func(this js.Value, args[]js.Value) any{
 		settings := Settings{
@@ -185,19 +190,19 @@ func CafJS() js.Func {
 		if settings.Compression != CompressionNone {
 			dataTmp, err := uncompress(data, settings.Compression)
 			if err != nil {
-				//fmt.Fprintln(os.Stderr, err)
-				return err.Error()
+				showError("Failed to uncompress image: %v", err)
+				return nil
 			}
 			data = dataTmp
 		}
 
 		if settings.FileType == FileJPEG || settings.FileType == FilePNG {
 			if parser.width == 0 || parser.height == 0 || parser.channel == 0 {
-				//fmt.Fprintln(os.Stderr, "Failed to parse image properties")
-				return "Failed to parse image properties"
+				js.Global().Get("showAlert").Invoke("Failed to parse image properties");
+				return nil
 			} else if parser.channel < 3 {
-				//fmt.Fprintln(os.Stderr, "Image with less than 3 channels not supported")
-				return "Image with less than 3 channels not supported"
+				js.Global().Get("showAlert").Invoke("Image with less than 3 channels not supported");
+				return nil
 			}
 			img := image.NewRGBA(image.Rect(0, 0, parser.width, parser.height))
 
@@ -223,8 +228,8 @@ func CafJS() js.Func {
 			}
 
 			if err != nil {
-				//fmt.Fprintln(os.Stderr, "Failed to encode image: ", err)
-				return "Failed to encode image: "
+				showError("Failed to encode image: %v", err)
+				return nil
 			}
 		} else {
 			bufferedWriter.Write(data)
