@@ -111,6 +111,8 @@
                 <label for="textOutput">Text Output</label>
                 <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
             </div>
+
+            <div id="saveButtonContainer" class="mt-4"></div>
         </div>
 
 
@@ -199,6 +201,21 @@
                 {
                     alert("Error message: " + errorMsg);
                 }
+                else
+                {
+                    const blob = new Blob([textOutput.value], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+                    // Create a download button
+                    const downloadButton = document.createElement('a');
+                    downloadButton.href = url;
+                    downloadButton.download = 'file.cpp'; // Default filename for the download
+                    downloadButton.className = 'btn btn-primary mt-3 mb-5'; // Bootstrap classes for styling
+                    downloadButton.textContent = "Save";
+
+                    const container = document.getElementById('saveButtonContainer');
+                    container.innerHTML = ''; // Clear any previous content
+                    container.appendChild(downloadButton);
+                }
             };
             reader.readAsArrayBuffer(file);
         }
@@ -221,7 +238,7 @@
             const downloadButton = document.createElement('a');
             downloadButton.href = url;
             downloadButton.download = 'image' + imageExtension; // Default filename for the download
-            downloadButton.className = 'btn btn-primary mt-3'; // Bootstrap classes for styling
+            downloadButton.className = 'btn btn-primary mt-3 mb-5'; // Bootstrap classes for styling
             downloadButton.textContent = imageExtension ? 'Save Image' : "Save";
 
             // Add img element and button to the DOM
