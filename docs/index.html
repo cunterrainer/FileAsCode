@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File as code</title>
+
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons (optional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
     <script src="wasm_exec.js"></script>
     <script>
         const go = new Go();
@@ -42,6 +44,19 @@
             max-height: 900px;
             overflow-y: auto; /* Scrollbar if needed */
         }
+
+        #infoParagraph {
+            border: 0.5px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .info-link {
+            display: block;
+            margin-top: 10px;
+            font-size: 1rem;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -52,6 +67,17 @@
         <div class="btn-group" role="group">
             <button id="facButton" data-toggle="tooltip" type="button" class="btn btn-primary" onclick="showFAC()">File as code</button>
             <button id="cafButton" data-toggle="tooltip" type="button" class="btn btn-secondary" onclick="showCAF()">Code as file</button>
+        </div>
+
+        <a class="btn btn-link mt-3 info-link" data-toggle="collapse" href="#infoParagraph" role="button" aria-expanded="false" aria-controls="infoParagraph">
+            Info <i class="fas fa-chevron-down"></i>
+        </a>
+
+        <!-- Collapsible Info Section -->
+        <div class="collapse" id="infoParagraph">
+            <div class="card card-body">
+                <p id="infoText">More in showFAC() and showCAF()</p>
+            </div>
         </div>
 
         <!-- FAC Content -->
@@ -178,6 +204,8 @@
             document.getElementById("facButton").classList.add("btn-primary");
             document.getElementById("cafButton").classList.remove("btn-primary");
             document.getElementById("cafButton").classList.add("btn-secondary");
+
+            document.getElementById('infoText').innerText = 'File as code: This option allows you to convert a file into code format for embedding in your project.\nas';
         }
 
         function showCAF() {
