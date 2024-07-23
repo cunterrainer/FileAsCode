@@ -132,6 +132,11 @@
                 </select>
             </div>
 
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="image_compressed">
+                <label class="form-check-label" for="image_compressed">image compressed</label>
+            </div>
+
             <!-- Combo Box for Compression -->
             <div class="form-group">
                 <label for="compressionCaf">Compression used</label>
@@ -247,12 +252,14 @@
 
                 var compression = document.getElementById("compressionCaf").selectedIndex;
                 var imageFormat = document.getElementById("imageFormat").selectedIndex;
+                if (document.getElementById("image_compressed").checked)
+                    imageFormat = 0;
 
                 let result = CafJS(uint8Array, imageFormat, compression);
                 if (result != null)
                 {
                     imageExtension = null;
-                    idx = document.getElementById("outputFormat").selectedIndex;
+                    idx = document.getElementById("imageFormat").selectedIndex;
                     if (idx == 1)
                         imageExtension = ".png"
                     else if (idx == 2)
