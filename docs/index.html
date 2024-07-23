@@ -37,8 +37,8 @@
         
         <!-- Toggle Buttons -->
         <div class="btn-group" role="group">
-            <button type="button" class="btn btn-primary" onclick="showFAC()">File as code</button>
-            <button type="button" class="btn btn-secondary" onclick="showCAF()">Code as file</button>
+            <button id="facButton" type="button" class="btn btn-primary" onclick="showFAC()">File as code</button>
+            <button id="cafButton" type="button" class="btn btn-secondary" onclick="showCAF()">Code as file</button>
         </div>
 
         <!-- FAC Content -->
@@ -160,13 +160,22 @@
         function showFAC() {
             document.getElementById('facContent').style.display = 'block';
             document.getElementById('cafContent').style.display = 'none';
-            document.getElementById("title").innerText = "File as code"
+            document.getElementById("title").innerText = "File as code";
+            document.getElementById("facButton").classList.remove("btn-secondary");
+            document.getElementById("facButton").classList.add("btn-primary");
+            document.getElementById("cafButton").classList.remove("btn-primary");
+            document.getElementById("cafButton").classList.add("btn-secondary");
         }
 
         function showCAF() {
             document.getElementById('facContent').style.display = 'none';
             document.getElementById('cafContent').style.display = 'block';
-            document.getElementById("title").innerText = "Code as file"
+            document.getElementById("title").innerText = "Code as file";
+            document.getElementById("facButton").classList.remove("btn-primary");
+            document.getElementById("facButton").classList.add("btn-secondary");
+            document.getElementById("cafButton").classList.remove("btn-secondary");
+            document.getElementById("cafButton").classList.add("btn-primary");
+        
         }
 
 
