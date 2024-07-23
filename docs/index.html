@@ -122,6 +122,7 @@
             <div class="form-group">
                 <label for="imageFormat">Image Format</label>
                 <select class="form-control" id="imageFormat">
+                    <option>None</option>
                     <option>PNG</option>
                     <option>JPG</option>
                 </select>
@@ -138,6 +139,8 @@
             </div>
 
             <button class="btn btn-primary" onclick="caf()">Submit</button>
+
+            <div id="imageContainer" class="mt-4"></div>
         </div>
     </div>
 
@@ -153,6 +156,7 @@
             document.getElementById('cafContent').style.display = 'block';
             document.getElementById("title").innerText = "Code as file"
         }
+
 
         fac = function()
         {
@@ -186,6 +190,92 @@
                 {
                     alert("Error message: " + errorMsg);
                 }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+
+        function displayImage(uint8Array) {
+            // Convert Uint8Array to Blob
+            const blob = new Blob([uint8Array], { type: 'application/octet-stream' });
+
+            // Create an Object URL
+            const url = URL.createObjectURL(blob);
+
+            // Create an img element
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Generated Image';
+            img.className = 'img-fluid'; // Bootstrap class to make image responsive
+
+            // Create a download button
+            const downloadButton = document.createElement('a');
+            downloadButton.href = url;
+            downloadButton.download = 'image.png'; // Default filename for the download
+            downloadButton.className = 'btn btn-primary mt-3'; // Bootstrap classes for styling
+            downloadButton.textContent = 'Download Image';
+
+            // Add img element and button to the DOM
+            const container = document.getElementById('imageContainer');
+            container.innerHTML = ''; // Clear any previous content
+            container.appendChild(img);
+            container.appendChild(downloadButton);
+        }
+
+
+        caf = function()
+        {
+            const fileInput = document.getElementById('fileInputCaf');
+            if (fileInput.files.length === 0)
+            {
+                alert('Error: Please select a file');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const arrayBuffer = event.target.result;
+                // Convert the ArrayBuffer to a Uint8Array
+                const uint8Array = new Uint8Array(arrayBuffer);
+
+                var compression = document.getElementById("compressionCaf").selectedIndex;
+                var imageFormat = document.getElementById("imageFormat").selectedIndex;
+
+                let errorMsg = CafJS(uint8Array, imageFormat, compression);
+                displayImage(errorMsg)
+                //const blob = new Blob([errorMsg], { type: 'application/octet-stream' });
+                //const url = URL.createObjectURL(blob);
+
+                // Create a download link
+                //const a = document.createElement('a');
+                //a.href = url;
+                //a.download = 'output.png';
+                //document.body.appendChild(a);
+                //a.click();
+                //document.body.removeChild(a);
+
+
+                // Convert result to a Blob if needed, or handle it as a byte array
+                //const blob = new Blob([errorMsg], { type: 'application/octet-stream' });
+                //const url = URL.createObjectURL(blob);
+
+                // Example: Create a download link
+                //const a = document.createElement('a');
+                //a.href = url;
+                //a.download = 'output.bin';
+                //document.body.appendChild(a);
+                //a.click();
+                //document.body.removeChild(a);
+                //if (errorMsg)
+                //{
+                //    alert("Error message: " + errorMsg);
+                //}
+                //else
+                //{
+                //    
+                //}
             };
             reader.readAsArrayBuffer(file);
         }

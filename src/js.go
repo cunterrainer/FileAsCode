@@ -7,9 +7,10 @@ import (
 	"bufio"
 	"strconv"
 	"syscall/js"
+	"image/png"
+	"image/jpeg"
+	"image/color"
 	_ "image/gif"
-	_ "image/png"
-	_ "image/jpeg"
     "compress/flate"
 )
 
@@ -25,12 +26,6 @@ func parseSettings(args[]js.Value) Settings {
 		Compression: args[7].Int(),
 		CompressLvl: args[8].Int(),
 	}
-
-	//if settings.FileType == 0 {
-	//	settings.FileType = FilePNG
-	//} else {
-	//	settings.FileType = FileJPEG
-	//}
 
 	settings.OutputRep += OutputHex
 	settings.Compression += CompressionNone
@@ -72,6 +67,10 @@ func (w *DomWriter) Flush() error {
 	w.element.Set("value", w.buffer.String())
 	w.buffer.Reset()
 	return nil
+}
+
+func (w *DomWriter) Bytes() []byte {
+	return w.buffer.Bytes()
 }
 
 func newDomWriter(element js.Value) *DomWriter {
@@ -145,10 +144,98 @@ func FacJS() js.Func {
 }
 
 
-// Caf
-func CafJS() js.Func {
-	cafFunc .= js.FuncOf(func(this js.value, args[]js.value) any{
+// caf
+func parseFile(data []byte) Parser {
+	parser := CreateParser(len(data))
+	chunkSize := 4096
+	for start := 0; start < len(data); start += chunkSize {
+		end := start + chunkSize
+		if end > len(data) {
+			end = len(data)
+		}
+		parser.ParseChunk(data[start:end], end-start)
+	}
+	return parser
+}
 
+
+func CafJS() js.Func {
+	cafFunc := js.FuncOf(func(this js.Value, args[]js.Value) any{
+		settings := Settings{
+			FileType: args[1].Int(),
+			Compression: args[2].Int(),
+		}
+
+		if settings.FileType == 1 {
+			settings.FileType = FilePNG
+		} else if settings.FileType == 2 {
+			settings.FileType = FileJPEG
+		}
+
+
+		fileDataJS := args[0]
+		fileData := make([]byte, fileDataJS.Get("length").Int())
+		js.CopyBytesToGo(fileData, fileDataJS)
+		parser := parseFile(fileData);
+
+		data := parser.data.Bytes()
+		var outputBuffer bytes.Buffer
+		bufferedWriter := bufio.NewWriter(&outputBuffer)
+
+		if settings.Compression != CompressionNone {
+			dataTmp, err := uncompress(data, settings.Compression)
+			if err != nil {
+				//fmt.Fprintln(os.Stderr, err)
+				return err.Error()
+			}
+			data = dataTmp
+		}
+
+		if settings.FileType == FileJPEG || settings.FileType == FilePNG {
+			if parser.width == 0 || parser.height == 0 || parser.channel == 0 {
+				//fmt.Fprintln(os.Stderr, "Failed to parse image properties")
+				return "Failed to parse image properties"
+			} else if parser.channel < 3 {
+				//fmt.Fprintln(os.Stderr, "Image with less than 3 channels not supported")
+				return "Image with less than 3 channels not supported"
+			}
+			img := image.NewRGBA(image.Rect(0, 0, parser.width, parser.height))
+
+			dataLen := len(data)
+			for i := 0; i < dataLen; i += parser.channel {
+				var alphaValue byte = 255
+				if parser.channel == 4 {
+					alphaValue = data[i+3]
+				}
+				img.Set(i / parser.channel % parser.width, i / parser.channel / parser.width, color.RGBA{
+					R: data[i],
+					G: data[i+1],
+					B: data[i+2],
+					A: alphaValue,
+				})
+			}
+
+			var err error
+			if settings.FileType == FilePNG {
+				err = png.Encode(bufferedWriter, img)
+			} else {
+				err = jpeg.Encode(bufferedWriter, img, nil)
+			}
+
+			if err != nil {
+				//fmt.Fprintln(os.Stderr, "Failed to encode image: ", err)
+				return "Failed to encode image: "
+			}
+		} else {
+			bufferedWriter.Write(data)
+		}
+
+		bufferedWriter.Flush()
+
+		byteArray := outputBuffer.Bytes()
+		uint8Array := js.Global().Get("Uint8Array").New(len(byteArray))
+		js.CopyBytesToJS(uint8Array, byteArray)
+		return uint8Array
 	});
 	return cafFunc;
 }
