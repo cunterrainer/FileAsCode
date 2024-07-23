@@ -18,9 +18,16 @@
             };
         });
 
-
+        
         window.onload = function() {
             showFAC(); // Default to show File as Code
+
+            var textarea = document.getElementById('textOutput');
+            textarea.addEventListener('input', function() {
+                autoResizeFacOutput(textarea);
+            });
+            // Initial call to set the correct height on page load
+            autoResizeFacOutput(textarea);
         };
     </script>
 
@@ -28,6 +35,9 @@
         #textOutput {
             font-family: monospace; /* Use monospace font for proper alignment */
             white-space: pre; /* Preserve whitespace */
+            min-height: 90px;
+            max-height: 900px;
+            overflow-y: auto; /* Scrollbar if needed */
         }
     </style>
 </head>
@@ -179,6 +189,12 @@
         }
 
 
+        function autoResizeFacOutput(textarea) {
+            textarea.style.height = 'auto'; // Reset height to auto
+            textarea.style.height = textarea.scrollHeight + 'px'; // Set height based on scrollHeight
+        }
+
+
         fac = function()
         {
             const fileInput = document.getElementById('fileInput');
@@ -213,6 +229,7 @@
                 }
                 else
                 {
+                    autoResizeFacOutput(document.getElementById('textOutput'));
                     const blob = new Blob([textOutput.value], { type: 'application/octet-stream' });
                     const url = URL.createObjectURL(blob);
                     // Create a download button
