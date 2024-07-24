@@ -187,8 +187,10 @@
             <!-- File Input -->
             <div class="form-group">
                 <label for="fileInputCaf">Select File</label>
-                <input type="file" class="form-control" id="fileInputCaf">
+                <input type="file" class="form-control" id="fileInputCaf" onchange="toggleClearFileButton()">
             </div>
+
+            <button type="button" class="btn btn-primary" id="clearFileButton" onclick="clearFileInput()" style="display: none;">Clear file input</button>
 
             <div class="form-group mt-4">
                 <label for="textInputCaf">Input</label>
@@ -314,6 +316,24 @@
             const existingDownloadButton = document.getElementById('downloadButton');
             if (existingDownloadButton) {
                 existingDownloadButton.remove();
+            }
+        }
+
+
+        function clearFileInput() {
+            const fileInput = document.getElementById('fileInputCaf');
+            fileInput.value = '';
+            toggleClearFileButton();
+        }
+
+
+        function toggleClearFileButton() {
+            const fileInput = document.getElementById('fileInputCaf');
+            const clearButton = document.getElementById('clearFileButton');
+            if (fileInput.files.length > 0) {
+                clearButton.style.display = 'inline-block';
+            } else {
+                clearButton.style.display = 'none';
             }
         }
 
