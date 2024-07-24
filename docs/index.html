@@ -58,6 +58,11 @@
             font-size: 1rem;
             text-align: left;
         }
+
+        .invisible {
+            visibility: hidden;
+            height: 0px;
+        }
     </style>
 </head>
 <body>
@@ -148,7 +153,12 @@
             <!-- Submit Button -->
             <button class="btn btn-primary" onclick="fac()">Convert</button>
 
-            <div class="form-group mt-4">
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="outputVisible" checked>
+                <label class="form-check-label" for="outputVisible" onclick="toggleOutput()">Output visible</label>
+            </div>
+
+            <div class="form-group mt-4" id="textOutputContainer">
                 <label for="textOutput">Output</label>
                 <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
             </div>
@@ -228,7 +238,9 @@
             Compression level: If a compression algorithm is used select the desired compression results, if 'None' is set ignored
                 Default: default compression level
                 Best speed: Use the compression level for best speed
-                Best compression: Use the compression level for best compression`;
+                Best compression: Use the compression level for best compression
+                
+            Output visible: Toggle the output window, can be useful if your file is very large. The download option will still be available.`;
         }
 
         function showCAF() {
@@ -258,6 +270,20 @@
         }
 
 
+        function toggleOutput()
+        {
+            var elem = document.getElementById('textOutputContainer');
+            if (elem.classList.contains('invisible'))
+            {
+                elem.classList.remove('invisible');
+            }
+            else
+            {
+                elem.classList.add('invisible');
+            }
+        }
+
+
         function autoResizeFacOutput(textarea) {
             textarea.style.height = 'auto'; // Reset height to auto
             textarea.style.height = textarea.scrollHeight + 'px'; // Set height based on scrollHeight
@@ -281,7 +307,7 @@
                 // Convert the ArrayBuffer to a Uint8Array
                 const uint8Array = new Uint8Array(arrayBuffer);
 
-                var cstyle = document.getElementById("cppCheckbox").checked;
+                var cppstyle = document.getElementById("cppCheckbox").checked;
                 var shrink = document.getElementById("shrinkCheckbox").checked;
                 var stdarray = document.getElementById("arrayCheckbox").checked;
                 var inlineVars = document.getElementById("inlineCheckbox").checked;
@@ -290,8 +316,7 @@
                 var compression = document.getElementById("compressionalgorithm").selectedIndex;
                 var compressLvl = document.getElementById("speedCompression").selectedIndex;
 
-                // TODO: add limit for output e.g. too large of an image file
-                let errorMsg = FacJS(uint8Array, cstyle, shrink, stdarray, inlineVars, uncompress, outputRep, compression, compressLvl);
+                let errorMsg = FacJS(uint8Array, !cppstyle /* fac excepts cstyle */, shrink, stdarray, inlineVars, uncompress, outputRep, compression, compressLvl);
                 if (errorMsg)
                 {
                     alert("Error message: " + errorMsg);
