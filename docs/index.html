@@ -27,9 +27,12 @@
         
         window.onload = function() {
             showFAC(); // Default to show File as Code
+            document.getElementById("outputVisible").checked = 1;
+            toggleFacDownloadButton();
 
             var textarea = document.getElementById('textOutput');
             textarea.addEventListener('input', function() {
+                toggleFacDownloadButton();
                 autoResizeFacOutput(textarea);
             });
             // Initial call to set the correct height on page load
@@ -178,7 +181,7 @@
                 <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
             </div>
 
-            <div id="buttonsContainer" class="mb-4"></div>
+            <button type="button" class="btn btn-success mt-2" id="facDownloadButton" onclick="facDownloadFile()" style="width: 120px;">Save output</button>
         </div>
 
 
@@ -300,10 +303,12 @@
             if (elem.classList.contains('invisible'))
             {
                 elem.classList.remove('invisible');
+                elem.classList.add('mt-4');
             }
             else
             {
                 elem.classList.add('invisible');
+                elem.classList.remove('mt-4');
             }
         }
 
@@ -312,11 +317,7 @@
         {
             document.getElementById('textOutput').value = ""
             autoResizeFacOutput(document.getElementById('textOutput'));
-
-            const existingDownloadButton = document.getElementById('downloadButton');
-            if (existingDownloadButton) {
-                existingDownloadButton.remove();
-            }
+            toggleFacDownloadButton();
         }
 
 
@@ -338,9 +339,33 @@
         }
 
 
+        function toggleFacDownloadButton() {
+            const downloadButton = document.getElementById('facDownloadButton');
+            if (document.getElementById("textOutput").value) {
+                downloadButton.style.display = "inline-block";
+            }
+            else {
+                downloadButton.style.display = "none";
+            }
+        }
+
+
         function autoResizeFacOutput(textarea) {
             textarea.style.height = 'auto'; // Reset height to auto
             textarea.style.height = textarea.scrollHeight + 'px'; // Set height based on scrollHeight
+        }
+
+
+        function facDownloadFile() {
+            const textOutput = document.getElementById('textOutput').value;
+            const blob = new Blob([textOutput], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'array.cpp'; // Name of the downloaded file
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
 
@@ -383,29 +408,7 @@
                 else
                 {
                     autoResizeFacOutput(document.getElementById('textOutput'));
-
-                    let downloadButton = document.getElementById('downloadButton');
-                    if (!downloadButton)
-                    {
-                        downloadButton = document.createElement('button');
-                        downloadButton.id = 'downloadButton';
-                        downloadButton.className = 'btn btn-success';
-                        downloadButton.style = "width: 120px";
-                        downloadButton.textContent = 'Save output';
-                        document.getElementById('buttonsContainer').appendChild(downloadButton);
-                    }
-
-                    downloadButton.onclick = function() {
-                        const textOutput = document.getElementById('textOutput').value;
-                        const blob = new Blob([textOutput], { type: 'text/plain' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'array.cpp'; // Name of the downloaded file
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    };
+                    toggleFacDownloadButton();
                 }
             };
             reader.readAsArrayBuffer(file);
