@@ -227,7 +227,7 @@
 
             <button class="btn btn-primary" onclick="caf()" style="width: 120px;">Convert</button>
 
-            <div id="imageContainer" class="mt-4"></div>
+            <div id="imageContainer"></div>
         </div>
     </div>
 
@@ -426,13 +426,13 @@
             const img = document.createElement('img');
             img.src = url;
             img.alt = 'Generated Image';
-            img.className = 'img-fluid'; // Bootstrap class to make image responsive
+            img.className = 'img-fluid mt-4'; // Bootstrap class to make image responsive
 
             // Create a download button
             const downloadButton = document.createElement('a');
             downloadButton.href = url;
             downloadButton.download = 'file' + imageExtension; // Default filename for the download
-            downloadButton.className = 'btn btn-success mt-3 mb-5'; // Bootstrap classes for styling
+            downloadButton.className = 'btn btn-success mt-4'; // Bootstrap classes for styling
             downloadButton.textContent = imageExtension ? 'Save Image' : "Save";
             downloadButton.style = "width: 120px";
 
