@@ -21,7 +21,7 @@ func printHelp(path string) {
     fmt.Println("        -d   | --decimal           Write bytes in decimal representation")
     fmt.Println("        -b   | --binary            Write bytes as bits e.g. 00000010")
     fmt.Println("        -c   | --char              Write chars to array instead of their value as hex (if printable)")
-    fmt.Println("        -c++ | --cplusplus         Use C-Style variable qualifiers (constexpr)")
+    fmt.Println("        -c++ | --cplusplus         Use C++-Style variable qualifiers (constexpr)")
     fmt.Println("        -h   | --help              Show this info message")
     fmt.Println("        -u   | --uncompress        Write uncompressed data to file (jpeg, png, gif)")
     fmt.Println("        -l   | --inline            Inline the variables (starting from C++17)")
