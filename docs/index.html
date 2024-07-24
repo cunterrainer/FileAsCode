@@ -46,6 +46,7 @@
         }
 
         #infoParagraph {
+            font-family: monospace; /* Use monospace font for proper alignment */
             border: 0.5px solid #ddd;
             border-radius: 5px;
             margin-top: 10px;
@@ -112,7 +113,7 @@
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="ucCheckbox">
-                    <label class="form-check-label" for="ucCheckbox">Uncompress</label>
+                    <label class="form-check-label" for="ucCheckbox">Decompress image</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="inlineCheckbox">
@@ -166,7 +167,7 @@
 
             <!-- Combo Box for PNG/JPG -->
             <div class="form-group">
-                <label for="imageFormat">Image Format</label>
+                <label for="imageFormat">Image format</label>
                 <select class="form-control" id="imageFormat">
                     <option>None</option>
                     <option>PNG</option>
@@ -205,7 +206,29 @@
             document.getElementById("cafButton").classList.remove("btn-primary");
             document.getElementById("cafButton").classList.add("btn-secondary");
 
-            document.getElementById('infoText').innerText = 'File as code: This option allows you to convert a file into code format for embedding in your project.\nas';
+            document.getElementById('infoText').innerText =
+            `File as code: This option allows you to convert a file into code format for embedding it in your project.
+            How to use:
+
+            Select a file, this can be any type of file.
+            Numbers representation: If you want the C-array to contain decimal, hex, binary or char values
+
+            Options:
+                Array: Use a std::array instead of a C-Style array
+                TODO: FIX: C++: Use C++-Style variable qualifiers (constexpr)
+                Decompress image: Write decompressed data to file (jpeg, png, gif)
+                Inline: Inline the variables (supported from C++17 onwards)
+                Shrink: Make the output array as small as possible (Not easy to read)
+
+            Compression algorithm: If you need the array to be smaller try to compress it
+                None: Don't compress
+                gzip: Use the gzip compression algorithm
+                zlib: Use the zlib compression algorithm
+
+            Compression level: If a compression algorithm is used select the desired compression results, if 'None' is set ignored
+                Default: default compression level
+                Best speed: Use the compression level for best speed
+                Best compression: Use the compression level for best compression`;
         }
 
         function showCAF() {
@@ -216,7 +239,22 @@
             document.getElementById("facButton").classList.add("btn-secondary");
             document.getElementById("cafButton").classList.remove("btn-secondary");
             document.getElementById("cafButton").classList.add("btn-primary");
-        
+            document.getElementById('infoText').innerText =
+            `File as code: This option allows you to convert a C-array into a file.
+            How to use:
+
+            Select a file, it should ideally be in the format of the 'File as code' output or just contain a c-array.
+
+            Image format:
+                If your C-array is either a png or a jpg image select it respectively, it will still work if you select none for images,
+                however it won't be able to convert decompressed images into their compressed counter part.
+
+            Image compressed:
+                If image format is either png or jpg select if you C-array contains the image still in it's image format.
+                This means if your C-array contains the png and you selected png click the box, if it contains the decompressed png select png and dont tick.
+
+            Compression used:
+                If you used the 'File as code' tool to convert a file into a C-array and applies compression you have to select the used compression algorithm.`;
         }
 
 
