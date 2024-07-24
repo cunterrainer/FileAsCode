@@ -429,7 +429,14 @@
                     imageFormat = 0;
 
                 let result = CafJS(uint8Array, imageFormat, compression);
-                if (result != null)
+                if (result == null)
+                {
+                    const imageCont = document.getElementById('imageContainer');
+                    if (imageCont) {
+                        imageCont.remove();
+                    }
+                }
+                else
                 {
                     imageExtension = null;
                     idx = document.getElementById("imageFormat").selectedIndex;
