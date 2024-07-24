@@ -422,12 +422,6 @@
             // Create an Object URL
             const url = URL.createObjectURL(blob);
 
-            // Create an img element
-            const img = document.createElement('img');
-            img.src = url;
-            img.alt = 'Generated Image';
-            img.className = 'img-fluid mt-4'; // Bootstrap class to make image responsive
-
             // Create a download button
             const downloadButton = document.createElement('a');
             downloadButton.href = url;
@@ -435,6 +429,29 @@
             downloadButton.className = 'btn btn-success mt-4'; // Bootstrap classes for styling
             downloadButton.textContent = imageExtension ? 'Save Image' : "Save";
             downloadButton.style = "width: 120px";
+
+            if (imageExtension)
+            {
+                // Create an img element
+                var img = document.createElement('img'); // var for it to be accessible outside of this if
+                img.src = url;
+                img.alt = 'Generated Image';
+                img.className = 'img-fluid mt-4'; // Bootstrap class to make image responsive
+
+                // Create a fallback text element if image can't be displayed
+                const errorMessage = document.createElement('p');
+                errorMessage.textContent = 'Failed to display image, make sure: The original data was an image, the correct image format is selected and the used compression is selected';
+                errorMessage.className = 'text-danger mt-4'; // Bootstrap class for styling
+
+                // Add error event listener to img element
+                img.onerror = function() {
+                    img.style.display = 'none'; // Hide the image element
+                    const container = document.getElementById('imageContainer');
+                    container.innerHTML = ''; // Clear any previous content
+                    container.appendChild(errorMessage); // Show the error message
+                    container.appendChild(downloadButton); // Show the download button
+                };
+            }
 
             // Add img element and button to the DOM
             const container = document.getElementById('imageContainer');
