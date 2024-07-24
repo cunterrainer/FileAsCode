@@ -46,6 +46,12 @@
             overflow-y: auto; /* Scrollbar if needed */
         }
 
+        #textInputCaf {
+            font-family: monospace; /* Use monospace font for proper alignment */
+            white-space: pre; /* Preserve whitespace */
+            overflow-y: auto; /* Scrollbar if needed */
+        }
+
         #infoParagraph {
             font-family: monospace; /* Use monospace font for proper alignment */
             border: 0.5px solid #ddd;
@@ -184,6 +190,11 @@
                 <input type="file" class="form-control" id="fileInputCaf">
             </div>
 
+            <div class="form-group mt-4">
+                <label for="textInputCaf">Input</label>
+                <textarea id="textInputCaf" name="textInputCaf" class="form-control" rows="10"></textarea>
+            </div>
+
             <!-- Combo Box for PNG/JPG -->
             <div class="form-group">
                 <label for="imageFormat">Image format</label>
@@ -264,7 +275,9 @@
             `File as code: This option allows you to convert a C-array into a file.
             How to use:
 
-            Select a file, it should ideally be in the format of the 'File as code' output or just contain a c-array.
+            Either select a file, it should ideally be in the format of the 'File as code' output or just contain a C-array,
+            or copy the files content into the 'Input' field. If a file is selected and the input field has content,
+            the file will be processed and the input ignored.
 
             Image format:
                 If your C-array is either a png or a jpg image select it respectively, it will still work if you select none for images,
@@ -409,18 +422,16 @@
 
         caf = function()
         {
+            const textInput = document.getElementById('textInputCaf').value;
             const fileInput = document.getElementById('fileInputCaf');
-            if (fileInput.files.length === 0)
+            if (fileInput.files.length === 0 && !textInput)
             {
-                alert('Error: Please select a file');
+                alert('Error: Please select a file or set the input manually');
                 return;
             }
 
-            const file = fileInput.files[0];
-            const reader = new FileReader();
 
-            reader.onload = function(event) {
-                const arrayBuffer = event.target.result;
+            var processArrayBuffer = function(arrayBuffer) {
                 // Convert the ArrayBuffer to a Uint8Array
                 const uint8Array = new Uint8Array(arrayBuffer);
 
@@ -430,25 +441,37 @@
                     imageFormat = 0;
 
                 let result = CafJS(uint8Array, imageFormat, compression);
-                if (result == null)
-                {
+                if (result == null) {
                     const imageCont = document.getElementById('imageContainer');
                     if (imageCont) {
                         imageCont.remove();
                     }
-                }
-                else
-                {
-                    imageExtension = null;
-                    idx = document.getElementById("imageFormat").selectedIndex;
-                    if (idx == 1)
-                        imageExtension = ".png"
-                    else if (idx == 2)
-                        imageExtension == ".jpg"
-                    displayImage(result, imageExtension)
+                } else {
+                    let imageExtension = null;
+                    let idx = document.getElementById("imageFormat").selectedIndex;
+                    if (idx == 1) {
+                        imageExtension = ".png";
+                    } else if (idx == 2) {
+                        imageExtension = ".jpg";
+                    }
+                    displayImage(result, imageExtension);
                 }
             };
-            reader.readAsArrayBuffer(file);
+
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    processArrayBuffer(event.target.result);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                // Use the textarea content as input
+                const arrayBuffer = new TextEncoder().encode(textInput).buffer;
+                processArrayBuffer(arrayBuffer);
+            }
         }
     </script>
 </body>
