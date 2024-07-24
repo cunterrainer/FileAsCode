@@ -56,9 +56,9 @@ func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "// FileAsCode exporter                                                          //")
 	fmt.Fprintln(w, "//                                                                              //")
-	fmt.Fprintln(w, "// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //")
+	fmt.Fprintln(w, "// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //")
 	fmt.Fprintln(w, "//                                                                              //")
-	fmt.Fprintln(w, "// use the web version: https://cunterrainer.github.io/FileAsCode/              //")
+	fmt.Fprintln(w, "// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //")
 	if compression == CompressionGzip {
 		fmt.Fprintln(w, "//                                                                              //")
 		fmt.Fprintln(w, "// Compression: gzip                                                            //")
