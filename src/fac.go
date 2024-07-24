@@ -1,21 +1,20 @@
 package fac
 
 import (
-	"io"
-	"os"
-	"fmt"
-	"image"
 	"bufio"
 	"bytes"
-	"errors"
-	"strconv"
-	_ "image/gif"
-	_ "image/png"
-	_ "image/jpeg"
 	"compress/gzip"
 	"compress/zlib"
+	"errors"
+	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"io"
+	"os"
+	"strconv"
 )
-
 
 type Settings struct {
 	InputPath   string
@@ -32,7 +31,6 @@ type Settings struct {
 	CompressLvl int
 }
 
-
 const (
 	CompressionNone = iota
 	CompressionGzip
@@ -47,7 +45,6 @@ const (
 	FileJPEG
 )
 
-
 func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression int) {
 	fmt.Fprintln(w, "#ifndef FILE_AS_CODE_H")
 	fmt.Fprintln(w, "#define FILE_AS_CODE_H")
@@ -60,6 +57,8 @@ func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression
 	fmt.Fprintln(w, "// FileAsCode exporter                                                          //")
 	fmt.Fprintln(w, "//                                                                              //")
 	fmt.Fprintln(w, "// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //")
+	fmt.Fprintln(w, "//                                                                              //")
+	fmt.Fprintln(w, "// use the web version: https://cunterrainer.github.io/FileAsCode/              //")
 	if compression == CompressionGzip {
 		fmt.Fprintln(w, "//                                                                              //")
 		fmt.Fprintln(w, "// Compression: gzip                                                            //")
@@ -72,7 +71,6 @@ func writeHeader(w io.Writer, headerVariables string, stdArray bool, compression
 	fmt.Fprintln(w)
 	fmt.Fprint(w, headerVariables)
 }
-
 
 func writeByteAsChar(w io.Writer, b byte) {
 	switch b {
@@ -98,7 +96,6 @@ func writeByteAsChar(w io.Writer, b byte) {
 		}
 	}
 }
-
 
 func writeArray(w io.Writer, bytes []byte, constVariant string, outputRep int, stdArray bool, shrink bool) {
 	bytesLen := len(bytes)
@@ -172,7 +169,6 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, outputRep int, s
 	}
 }
 
-
 func getConstVariant(cstyle bool, inline bool) string {
 	if cstyle && inline {
 		return "inline const"
@@ -184,7 +180,6 @@ func getConstVariant(cstyle bool, inline bool) string {
 	return "static constexpr"
 }
 
-
 func getIntType(stdArray bool) string {
 	if stdArray {
 		return "std::size_t"
@@ -192,7 +187,6 @@ func getIntType(stdArray bool) string {
 		return "unsigned int"
 	}
 }
-
 
 func GetOutputFile(outputPath string) *os.File {
 	if outputPath == "" {
@@ -206,7 +200,6 @@ func GetOutputFile(outputPath string) *os.File {
 	return file
 }
 
-
 func readFileCompressed(path string) ([]byte, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -214,7 +207,6 @@ func readFileCompressed(path string) ([]byte, error) {
 	}
 	return content, nil
 }
-
 
 func getImageBytes(img image.Image) ([]byte, int, error) {
 	var buf bytes.Buffer
@@ -268,9 +260,9 @@ func getImageBytes(img image.Image) ([]byte, int, error) {
 				r, g, b, _ := img.At(x, y).RGBA()
 
 				// Normalize the values to the range of 0-255 with rounding
-				r = (uint32(r) * 0xFF + 0x7FFF) / 0xFFFF
-				g = (uint32(g) * 0xFF + 0x7FFF) / 0xFFFF
-				b = (uint32(b) * 0xFF + 0x7FFF) / 0xFFFF
+				r = (uint32(r)*0xFF + 0x7FFF) / 0xFFFF
+				g = (uint32(g)*0xFF + 0x7FFF) / 0xFFFF
+				b = (uint32(b)*0xFF + 0x7FFF) / 0xFFFF
 
 				buf.WriteByte(byte(r))
 				buf.WriteByte(byte(g))
@@ -281,7 +273,6 @@ func getImageBytes(img image.Image) ([]byte, int, error) {
 
 	return buf.Bytes(), channel, nil
 }
-
 
 func readFileUncompressed(path string) ([]byte, int, int, int, error) {
 	file, err := os.Open(path)
@@ -298,7 +289,6 @@ func readFileUncompressed(path string) ([]byte, int, int, int, error) {
 	bytes, channel, err := getImageBytes(image)
 	return bytes, channel, image.Bounds().Dx(), image.Bounds().Dy(), err
 }
-
 
 func compress(input []byte, algorithm int, compressionLevel int) ([]byte, error) {
 	var compressed bytes.Buffer
@@ -326,7 +316,6 @@ func compress(input []byte, algorithm int, compressionLevel int) ([]byte, error)
 
 	return compressed.Bytes(), nil
 }
-
 
 func Fac(settings Settings) {
 	var content []byte
