@@ -123,8 +123,6 @@ func writeArray(w io.Writer, bytes []byte, constVariant string, outputRep int, s
 		if shrink {
 			if processed == bytesLen {
 				fmt.Fprintf(w, "%d\n};\n", b)
-			} else if processed%32 == 0 {
-				fmt.Fprintf(w, "%d,\n", b)
 			} else {
 				fmt.Fprintf(w, "%d,", b)
 			}
