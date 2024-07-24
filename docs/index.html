@@ -153,7 +153,7 @@
                 <textarea id="textOutput" name="textOutput" class="form-control" rows="10"></textarea>
             </div>
 
-            <div id="saveButtonContainer" class="mt-4"></div>
+            <div id="buttonsContainer" class="mb-4"></div>
         </div>
 
 
@@ -295,22 +295,37 @@
                 if (errorMsg)
                 {
                     alert("Error message: " + errorMsg);
+
+                    const existingDownloadButton = document.getElementById('downloadButton');
+                    if (existingDownloadButton) {
+                        existingDownloadButton.remove();
+                    }
                 }
                 else
                 {
                     autoResizeFacOutput(document.getElementById('textOutput'));
-                    const blob = new Blob([textOutput.value], { type: 'application/octet-stream' });
-                    const url = URL.createObjectURL(blob);
-                    // Create a download button
-                    const downloadButton = document.createElement('a');
-                    downloadButton.href = url;
-                    downloadButton.download = 'file.cpp'; // Default filename for the download
-                    downloadButton.className = 'btn btn-primary mt-3 mb-5'; // Bootstrap classes for styling
-                    downloadButton.textContent = "Save";
 
-                    const container = document.getElementById('saveButtonContainer');
-                    container.innerHTML = ''; // Clear any previous content
-                    container.appendChild(downloadButton);
+                    let downloadButton = document.getElementById('downloadButton');
+                    if (!downloadButton)
+                    {
+                        downloadButton = document.createElement('button');
+                        downloadButton.id = 'downloadButton';
+                        downloadButton.className = 'btn btn-success';
+                        downloadButton.textContent = 'Save output';
+                        document.getElementById('buttonsContainer').appendChild(downloadButton);
+                    }
+
+                    downloadButton.onclick = function() {
+                        const textOutput = document.getElementById('textOutput').value;
+                        const blob = new Blob([textOutput], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'array.cpp'; // Name of the downloaded file
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    };
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -334,7 +349,7 @@
             const downloadButton = document.createElement('a');
             downloadButton.href = url;
             downloadButton.download = 'image' + imageExtension; // Default filename for the download
-            downloadButton.className = 'btn btn-primary mt-3 mb-5'; // Bootstrap classes for styling
+            downloadButton.className = 'btn btn-success mt-3 mb-5'; // Bootstrap classes for styling
             downloadButton.textContent = imageExtension ? 'Save Image' : "Save";
 
             // Add img element and button to the DOM
