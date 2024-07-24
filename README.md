@@ -1,5 +1,5 @@
 # File as code
-Convert files into C arrays and vice versa.
+Convert files into C arrays and vice versa. You can also [try the web version](https://cunterrainer.github.io/FileAsCode/)
 
 # Example
 Checkout [examples.md](examples.md) for more supported conversions
@@ -56,8 +56,24 @@ git clone https://github.com/pyvyx/FileAsCode.git
 ``` bash
 cd FileAsCode
 ```
+## Build the executable
 ``` bash
 go build -ldflags "-s -w" -o fac.exe
+```
+## Build the web assembly version
+### Windows
+``` bash
+set GOOS=js
+```
+``` bash
+set GOARCH=wasm
+```
+``` bash
+go build -o docs/fac.wasm
+```
+### Linux (probably also macOS)
+``` bash
+GOOS=js GOARCH=wasm go build -o docs/fac.wasm
 ```
 
 # Troubleshooting
