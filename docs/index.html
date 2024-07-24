@@ -158,18 +158,18 @@
             </div>
 
             <!-- Submit Button -->
-            <button class="btn btn-primary" onclick="fac()">Convert</button>
+            <button class="btn btn-primary" onclick="fac()" style="width: 120px;">Convert</button>
 
             <div class="row align-items-center mt-4">
+                <div class="col-auto">
+                    <button class="btn btn-primary" onclick="clearOutput()" style="width: 120px;">Clear output</button>
+                </div>
+
                 <div class="col-auto">
                     <div class="form-check col-auto">
                         <input class="form-check-input" type="checkbox" id="outputVisible" onclick="toggleOutput()" checked>
                         <label class="form-check-label" for="outputVisible">Output visible</label>
                     </div>
-                </div>
-    
-                <div class="col-auto">
-                    <button class="btn btn-primary" onclick="clearOutput()">Clear output</button>
                 </div>
             </div>
 
@@ -390,6 +390,7 @@
                         downloadButton = document.createElement('button');
                         downloadButton.id = 'downloadButton';
                         downloadButton.className = 'btn btn-success';
+                        downloadButton.style = "width: 120px";
                         downloadButton.textContent = 'Save output';
                         document.getElementById('buttonsContainer').appendChild(downloadButton);
                     }
