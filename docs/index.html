@@ -117,16 +117,16 @@
                     <label class="form-check-label" for="cppCheckbox">C++</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="ucCheckbox">
-                    <label class="form-check-label" for="ucCheckbox">Decompress image</label>
-                </div>
-                <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="inlineCheckbox">
                     <label class="form-check-label" for="inlineCheckbox">Inline</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="shrinkCheckbox">
                     <label class="form-check-label" for="shrinkCheckbox">Shrink</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ucCheckbox">
+                    <label class="form-check-label" for="ucCheckbox">Decompress image</label>
                 </div>
             </div>
 
@@ -153,9 +153,17 @@
             <!-- Submit Button -->
             <button class="btn btn-primary" onclick="fac()">Convert</button>
 
-            <div class="form-check mt-4">
-                <input class="form-check-input" type="checkbox" id="outputVisible" checked>
-                <label class="form-check-label" for="outputVisible" onclick="toggleOutput()">Output visible</label>
+            <div class="row align-items-center mt-4">
+                <div class="col-auto">
+                    <div class="form-check col-auto">
+                        <input class="form-check-input" type="checkbox" id="outputVisible" checked>
+                        <label class="form-check-label" for="outputVisible" onclick="toggleOutput()">Output visible</label>
+                    </div>
+                </div>
+    
+                <div class="col-auto">
+                    <button class="btn btn-primary" onclick="clearOutput()">Clear output</button>
+                </div>
             </div>
 
             <div class="form-group mt-4" id="textOutputContainer">
@@ -186,7 +194,7 @@
             </div>
 
             <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" id="image_compressed">
+                <input class="form-check-input" type="checkbox" id="image_compressed" checked>
                 <label class="form-check-label" for="image_compressed">Image compressed</label>
             </div>
 
@@ -280,6 +288,18 @@
             else
             {
                 elem.classList.add('invisible');
+            }
+        }
+
+
+        function clearOutput()
+        {
+            document.getElementById('textOutput').value = ""
+            autoResizeFacOutput(document.getElementById('textOutput'));
+
+            const existingDownloadButton = document.getElementById('downloadButton');
+            if (existingDownloadButton) {
+                existingDownloadButton.remove();
             }
         }
 
