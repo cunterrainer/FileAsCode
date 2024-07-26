@@ -46,14 +46,14 @@ Raw conversion supports every single file type, that conversion is just to get t
  - PNG
  - GIF (*comp always reports as 4-channel)
 
-If you need support for more image types checkout the [c++ version](https://github.com/pyvyx/FileAsCode/tree/cpp).
+If you need support for more image types checkout the [c++ version](https://github.com/cunterrainer/FileAsCode/tree/cpp).
 
 ## Reverse
 Use the `--reverse` flag to convert a previously created array back into it's original representation. Be carefull of used flags to create the array, use `--help` for more extensive information.
 
 # Build
 ``` bash
-git clone https://github.com/pyvyx/FileAsCode.git
+git clone https://github.com/cunterrainer/FileAsCode.git
 ```
 ``` bash
 cd FileAsCode
@@ -80,7 +80,7 @@ GOOS=js GOARCH=wasm go build -o docs/fac.wasm
 
 # Troubleshooting
 
-If you encounter any issues while building or using FileAsCode checkout the [c++ version (preferred)](https://github.com/pyvyx/FileAsCode/tree/cpp) or the [zig version](https://github.com/pyvyx/FileAsCode/tree/zig). Build instructions are in their respective READMEs.
+If you encounter any issues while building or using FileAsCode checkout the [c++ version (preferred)](https://github.com/cunterrainer/FileAsCode/tree/cpp) or the [zig version](https://github.com/cunterrainer/FileAsCode/tree/zig). Build instructions are in their respective READMEs.
 
 ```bash
 git checkout cpp
