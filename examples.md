@@ -11,7 +11,9 @@
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +52,9 @@ static const unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) /
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -86,7 +90,9 @@ static const std::array<std::uint8_t, 257> sg_File_as_code =
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -123,7 +129,9 @@ static const unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) /
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -176,7 +184,9 @@ static const unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) /
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -210,7 +220,9 @@ static const unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) /
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 // Compression: gzip                                                            //
 //                                                                              //
@@ -250,7 +262,9 @@ static const unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) /
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 // Compression: zlib                                                            //
 //                                                                              //
@@ -290,7 +304,9 @@ static const unsigned long long sg_File_as_code_size = sizeof(sg_File_as_code) /
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 

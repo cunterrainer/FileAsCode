@@ -10,7 +10,9 @@ Checkout [examples.md](examples.md) for more supported conversions
 //                                                                              //
 // FileAsCode exporter                                                          //
 //                                                                              //
-// more infos and bug-reports: https://github.com/pyvyx/FileAsCode              //
+// more infos and bug-reports: https://github.com/cunterrainer/FileAsCode       //
+//                                                                              //
+// or try out the web version: https://cunterrainer.github.io/FileAsCode/       //
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
